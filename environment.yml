@@ -1,0 +1,9 @@
+name: multi-building-detector
+channels:
+- menpo
+dependencies:
+- opencv3=3.1.0
+- python=3.5
+- pip:
+  - chainer==3.0.0
+  - chainercv==0.7.0.0
