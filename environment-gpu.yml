@@ -1,0 +1,11 @@
+name: multi-building-detector-gpu
+channels:
+- menpo
+dependencies:
+- opencv3=3.1.0
+- python=3.5
+- pip:
+  - chainer==3.0.0
+  - chainercv
+  - cupy==2.1.0
+  - chainercv==0.7.0.0
