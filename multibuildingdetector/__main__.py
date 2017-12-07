@@ -6,7 +6,7 @@ from chainer.optimizer import WeightDecay
 from chainercv.extensions import DetectionVOCEvaluator
 from chainercv.links import SSD300
 from chainercv.links.model.ssd import GradientScaling
-from multibuildingdetector.tranforms.augmentation import ImageAugmentation
+from multibuildingdetector.transforms.augmentation import ImageAugmentation
 from multibuildingdetector.multiboxtrainchain import MultiboxTrainChain
 from .readers import xmldataset
 from chainer.datasets import TransformDataset
