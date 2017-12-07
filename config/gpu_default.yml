@@ -1,0 +1,5 @@
+input: ../labeled_images/
+output: result
+batch_size: 32
+iterator: SerialIterator
+device: 0
