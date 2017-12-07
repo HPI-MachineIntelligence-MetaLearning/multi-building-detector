@@ -1,17 +1,17 @@
 # multi-building-detector
 Multibox detection framework with interchangeable architectures
 
-#Installation
+# Installation
 You need to install miniconda first. 
 
-##GPU Install  
+## GPU Install  
 ```
 conda env create -f environment-gpu.yml
 source activate multi-building-detector-gpu
 
 ```
 
-##CPU Install
+## CPU Install
 ```
 conda env create -f environment.yml
 source activate multi-building-detector
@@ -19,7 +19,7 @@ source activate multi-building-detector
 ```
 
 
-#Configuration
+# Configuration
 Save a new `*.yml` file in the config directory.
 Currently following fields are supported:
 
@@ -31,7 +31,7 @@ iterator: <chainer iterator class>
 device: <gpu index or -1 for cpu>
 ```
 
-#Usage
+# Usage
 ```
 usage: python -m multibuildingdetector [-h] -c CONFIG
 
