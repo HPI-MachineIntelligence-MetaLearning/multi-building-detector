@@ -13,7 +13,8 @@ LABEL_NAMES = ('other',
                'funkturm',
                'reichstag',
                'rotesrathaus',
-               'siegessaeule')
+               'siegessaeule',
+               'none')
 
 
 class XMLDataset(chainer.dataset.DatasetMixin):
@@ -52,8 +53,8 @@ class XMLDataset(chainer.dataset.DatasetMixin):
                 name = obj.find('name').text.lower().strip()
                 label.append(LABEL_NAMES.index(name))
         except FileNotFoundError:
-            bbox.append([])
-            label.append([])
+            bbox.append([0, 0, 0, 0])
+            label.append(LABEL_NAMES.index('none'))
         bbox = np.stack(bbox).astype(np.float32)
         label = np.stack(label).astype(np.int32)
 
