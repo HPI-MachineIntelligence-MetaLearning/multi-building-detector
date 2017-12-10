@@ -53,6 +53,8 @@ class XMLDataset(chainer.dataset.DatasetMixin):
                 name = obj.find('name').text.lower().strip()
                 label.append(LABEL_NAMES.index(name))
         except FileNotFoundError:
+            # No buildings present in this image,
+            # but dimensions have to be consistent
             bbox.append([0, 0, 0, 0])
             label.append(LABEL_NAMES.index('none'))
         bbox = np.stack(bbox).astype(np.float32)
