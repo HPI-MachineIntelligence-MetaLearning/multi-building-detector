@@ -2,9 +2,9 @@
 Multibox detection framework with interchangeable architectures
 
 # Installation
-You need to install miniconda first. 
+You need to install miniconda first.
 
-## GPU Install  
+## GPU Install
 ```
 conda env create -f environment-gpu.yml
 source activate multi-building-detector-gpu
@@ -29,6 +29,8 @@ output: <training result output path>
 batch_size: <batch size>
 iterator: <chainer iterator class>
 device: <gpu index or -1 for cpu>
+pretrained_model: <path to a pretrained model file saved prior to continue training>
+save_trigger: <number of iterations after which to save the current model>
 ```
 
 # Usage
