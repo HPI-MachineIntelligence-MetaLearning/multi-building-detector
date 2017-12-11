@@ -20,7 +20,7 @@ def load_config(path):
 
 
 def run(input, output, batch_size, iterator='SerialIterator', device=-1,
-        pretrained_model=''):
+        pretrained_model='', save_trigger=10000):
     if not pretrained_model or not os.path.isfile(pretrained_model):
             print('Pretrained model file not found, using imagenet as default')
             pretrained_model = 'imagenet'
@@ -71,6 +71,10 @@ def run(input, output, batch_size, iterator='SerialIterator', device=-1,
         ['epoch', 'iteration', 'lr',
          'main/loss', 'main/loss/loc', 'main/loss/conf',
          'validation/main/map']), )
+    trainer.extend(extensions.snapshot_object(
+                   model, 'model_iter_{.updater.iteration}'),
+                   trigger=(save_trigger, 'iteration'))
+
     trainer.extend(extensions.ProgressBar(update_interval=10))
     trainer.run()
 

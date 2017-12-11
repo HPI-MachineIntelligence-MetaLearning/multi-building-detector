@@ -3,3 +3,4 @@ output: result
 batch_size: 32
 iterator: SerialIterator
 pretrained_model: 'result/model'
+save_trigger: 10000
