@@ -3,3 +3,4 @@ output: result
 batch_size: 32
 iterator: SerialIterator
 device: 0
+pretrained_model: 'result/model'

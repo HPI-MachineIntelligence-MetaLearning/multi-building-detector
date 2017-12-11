@@ -2,3 +2,4 @@ input: ../labeled_images/
 output: result
 batch_size: 32
 iterator: SerialIterator
+pretrained_model: 'result/model'
