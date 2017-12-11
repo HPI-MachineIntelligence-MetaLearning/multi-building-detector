@@ -1,6 +1,7 @@
 import chainer
 import argparse
 import yaml
+import os.path
 
 from chainer.optimizer import WeightDecay
 from chainercv.extensions import DetectionVOCEvaluator
@@ -18,9 +19,13 @@ def load_config(path):
         return yaml.load(f)
 
 
-def run(input, output, batch_size, iterator='SerialIterator', device=-1):
+def run(input, output, batch_size, iterator='SerialIterator', device=-1,
+        pretrained_model=''):
+    if not pretrained_model or not os.path.isfile(pretrained_model):
+            print('Pretrained model file not found, using imagenet as default')
+            pretrained_model = 'imagenet'
     model = SSD300(n_fg_class=len(xmldataset.LABEL_NAMES),
-                   pretrained_model='imagenet')
+                   pretrained_model=pretrained_model)
     model.use_preset('evaluate')
     train_chain = MultiboxTrainChain(model)
 
@@ -49,7 +54,8 @@ def run(input, output, batch_size, iterator='SerialIterator', device=-1):
     if device is None:
         updater = chainer.training.StandardUpdater(train_iter, optimizer)
     else:
-        updater = chainer.training.StandardUpdater(train_iter, optimizer, device=device)
+        updater = chainer.training.StandardUpdater(train_iter, optimizer,
+                                                   device=device)
     trainer = chainer.training.Trainer(updater, (120000, 'iteration'), output)
 
     trainer.extend(
