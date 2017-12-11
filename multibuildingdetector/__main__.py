@@ -21,12 +21,12 @@ def load_config(path):
 
 def run(input, output, batch_size, iterator='SerialIterator', device=-1,
         pretrained_model='', save_trigger=10000):
-    if not pretrained_model or not os.path.isfile(pretrained_model):
-            print('Pretrained model file not found, ' +
-                  'using imagenet as default.')
-            pretrained_model = 'imagenet'
-    else:
+    if pretrained_model and os.path.isfile(pretrained_model):
         print('Pretrained model {} loaded.'.format(pretrained_model))
+    else:
+        print('Pretrained model file not found, ' +
+              'using imagenet as default.')
+        pretrained_model = 'imagenet'
     model = SSD300(n_fg_class=len(xmldataset.LABEL_NAMES),
                    pretrained_model=pretrained_model)
     model.use_preset('evaluate')
