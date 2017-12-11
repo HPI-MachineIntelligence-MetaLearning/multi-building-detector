@@ -1,7 +1,7 @@
 import chainer
 import argparse
 import yaml
-import os.path
+import os
 
 from chainer.optimizer import WeightDecay
 from chainercv.extensions import DetectionVOCEvaluator
