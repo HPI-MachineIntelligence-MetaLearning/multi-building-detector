@@ -19,8 +19,8 @@ def load_config(path):
         return yaml.load(f)
 
 
-def run(input, output, batch_size, train_split, iterator='SerialIterator', device=-1,
-        pretrained_model='', save_trigger=10000):
+def run(input, output, batch_size, train_split=0.8, iterator='SerialIterator',
+        device=-1, pretrained_model='', save_trigger=10000):
     if pretrained_model and os.path.isfile(pretrained_model):
         print('Pretrained model {} loaded.'.format(pretrained_model))
     else:
