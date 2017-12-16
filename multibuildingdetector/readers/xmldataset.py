@@ -25,7 +25,7 @@ class XMLDataset(chainer.dataset.DatasetMixin):
         self._split = split
 
     def __len__(self):
-        return int(len(self._img_ids) / 2)
+        return len(self._img_ids)
 
     def get_example(self, i):
         """Returns the i-th example.
