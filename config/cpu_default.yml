@@ -1,6 +1,7 @@
 input: ../labeled_images/
 output: result
 batch_size: 32
+train_split: 0.7
 iterator: SerialIterator
 pretrained_model: 'result/model'
 save_trigger: 10000

@@ -36,10 +36,7 @@ class XMLDataset(chainer.dataset.DatasetMixin):
         Returns:
             tuple of an image and bounding boxes and label
         """
-        if self._split == 'train':
-            id_ = self._img_ids[i * 2]
-        else:
-            id_ = self._img_ids[i * 2 + 1]
+        id_ = self._img_ids[i]
         bbox = list()
         label = list()
         try:

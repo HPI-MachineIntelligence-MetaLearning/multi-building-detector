@@ -19,7 +19,7 @@ def load_config(path):
         return yaml.load(f)
 
 
-def run(input, output, batch_size, iterator='SerialIterator', device=-1,
+def run(input, output, batch_size, train_split, iterator='SerialIterator', device=-1,
         pretrained_model='', save_trigger=10000):
     if pretrained_model and os.path.isfile(pretrained_model):
         print('Pretrained model {} loaded.'.format(pretrained_model))
@@ -36,12 +36,16 @@ def run(input, output, batch_size, iterator='SerialIterator', device=-1,
         chainer.cuda.get_device_from_id(device).use()
         model.to_gpu()
 
-    train = TransformDataset(
-        xmldataset.XMLDataset(input),
-        ImageAugmentation(model.coder, model.insize, model.mean))
-    train_iter = getattr(chainer.iterators, iterator)(train, batch_size)
+    dataset = xmldataset.XMLDataset(input)
+    split_size = int(len(dataset) * train_split)
+    train, test = dataset[:split_size], dataset[split_size:]
+    print("Split: {0}, Train size: {1}, Test size: {2}".format(train_split, len(train), len(test)))
 
-    test = xmldataset.XMLDataset(input, split='test')
+    augmented_train = TransformDataset(
+        train,
+        ImageAugmentation(model.coder, model.insize, model.mean))
+    train_iter = getattr(chainer.iterators, iterator)(augmented_train, batch_size)
+
     test_iter = chainer.iterators.SerialIterator(
         test, batch_size, repeat=False, shuffle=False)
 
