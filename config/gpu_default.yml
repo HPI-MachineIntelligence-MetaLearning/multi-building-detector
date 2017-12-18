@@ -1,4 +1,4 @@
-input: ../labeled_images/
+input_dir: ../labeled_images/
 output: result
 batch_size: 32
 train_split: 0.8
