@@ -2,7 +2,7 @@ from os import listdir
 from os.path import isfile, join
 from sklearn.model_selection import train_test_split
 
-from xmldataset import XMLDataset
+from .xmldataset import XMLDataset
 
 
 def load_train_test_set(data_dir, annotationType='xml', train_size=0.8):
