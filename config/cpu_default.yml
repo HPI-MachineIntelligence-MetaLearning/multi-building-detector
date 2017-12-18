@@ -1,6 +1,6 @@
 input: ../labeled_images/
 output: result
 batch_size: 32
-iterator: SerialIterator
+iterator: MultiprocessIterator
 pretrained_model: 'result/model'
 save_trigger: 10000
