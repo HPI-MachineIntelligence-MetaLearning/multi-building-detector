@@ -1,10 +1,7 @@
 import numpy as np
 import xml.etree.ElementTree as ET
 import chainer
-
 from chainercv.utils import read_image
-from os import listdir
-from os.path import isfile, join
 
 LABEL_NAMES = ('other',
                'berlinerdom',
@@ -19,13 +16,11 @@ LABEL_NAMES = ('other',
 
 class XMLDataset(chainer.dataset.DatasetMixin):
 
-    def __init__(self, data_dir, split='train'):
-        self._img_ids = [join(data_dir, ''.join(f.split('.')[:-1])) for f in
-                         listdir(data_dir) if isfile(join(data_dir, f))]
-        self._split = split
+    def __init__(self, _img_id_paths):
+        self._img_id_paths = _img_id_paths
 
     def __len__(self):
-        return len(self._img_ids)
+        return len(self._img_id_paths)
 
     def get_example(self, i):
         """Returns the i-th example.
@@ -36,7 +31,7 @@ class XMLDataset(chainer.dataset.DatasetMixin):
         Returns:
             tuple of an image and bounding boxes and label
         """
-        id_ = self._img_ids[i]
+        id_ = self._img_id_paths[i]
         bbox = list()
         label = list()
         try:

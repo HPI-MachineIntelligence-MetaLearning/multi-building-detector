@@ -9,7 +9,7 @@ from chainercv.links import SSD300
 from chainercv.links.model.ssd import GradientScaling
 from multibuildingdetector.transforms.augmentation import ImageAugmentation
 from multibuildingdetector.multiboxtrainchain import MultiboxTrainChain
-from .readers import xmldataset
+from .readers import reader, xmldataset
 from chainer.datasets import TransformDataset
 from chainer.training import extensions
 
@@ -36,10 +36,7 @@ def run(input, output, batch_size, train_split=0.8, iterator='SerialIterator',
         chainer.cuda.get_device_from_id(device).use()
         model.to_gpu()
 
-    dataset = xmldataset.XMLDataset(input)
-    split_size = int(len(dataset) * train_split)
-    train, test = dataset[:split_size], dataset[split_size:]
-    print("Split: {0}, Train size: {1}, Test size: {2}".format(train_split, len(train), len(test)))
+    train, test = reader.load_train_test_set(input, 'xml', 0.8)
 
     augmented_train = TransformDataset(
         train,
