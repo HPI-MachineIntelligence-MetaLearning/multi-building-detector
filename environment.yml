@@ -8,3 +8,4 @@ dependencies:
   - chainer==3.0.0
   - chainercv==0.7.0.0
   - pyyaml==3.12
+  - matplotlib==2.1.0
