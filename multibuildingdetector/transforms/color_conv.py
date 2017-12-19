@@ -52,7 +52,7 @@ def rgb_to_hsv(rgb):
     ----------
     .. [1] http://en.wikipedia.org/wiki/HSL_and_HSV
     """
-    delta = rgb.ptp(-1)
+    delta = cp.array(rgb.ptp(-1))
     rgb = cp.array(rgb)
     out = cp.empty_like(rgb)
 
