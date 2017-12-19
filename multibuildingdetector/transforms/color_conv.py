@@ -52,6 +52,7 @@ def rgb_to_hsv(rgb):
     ----------
     .. [1] http://en.wikipedia.org/wiki/HSL_and_HSV
     """
+    delta = rgb.ptp(-1)
     rgb = cp.array(rgb)
     out = cp.empty_like(rgb)
 
@@ -59,9 +60,7 @@ def rgb_to_hsv(rgb):
     out_v = rgb.max(-1)
 
     # -- S channel
-    delta = rgb.ptp(-1)
     # Ignore warning for zero divided by zero
-    old_settings = cp.seterr(invalid='ignore')
     out_s = delta / out_v
     out_s[delta == 0.] = 0.
 
@@ -79,8 +78,6 @@ def rgb_to_hsv(rgb):
     out[idx, 0] = 4. + (rgb[idx, 0] - rgb[idx, 1]) / delta[idx]
     out_h = (out[:, :, 0] / 6.) % 1.
     out_h[delta == 0.] = 0.
-
-    cp.seterr(**old_settings)
 
     # -- output
     out[:, :, 0] = out_h
