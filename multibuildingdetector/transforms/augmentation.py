@@ -6,7 +6,7 @@ from chainercv import transforms
 from chainercv.links.model.ssd import random_crop_with_bbox_constraints, \
     resize_with_random_interpolation
 
-from color_conv import rgb_to_hsv, hsv_to_rgb
+from .color_conv import rgb_to_hsv, hsv_to_rgb
 
 
 def random_distort(

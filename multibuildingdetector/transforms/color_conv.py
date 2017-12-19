@@ -1,7 +1,7 @@
 import cupy as cp
 
 
-def hsv2rgb(hsv):
+def hsv_to_rgb(hsv):
     """HSV to RGB color space conversion.
     Parameters
     ----------
@@ -36,7 +36,7 @@ def hsv2rgb(hsv):
     return cp.asnumpy(out)
 
 
-def rgb2hsv(rgb):
+def rgb_to_hsv(rgb):
     """RGB to HSV color space conversion.
     Parameters
     ----------
