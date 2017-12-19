@@ -26,12 +26,12 @@ def hsv_to_rgb(hsv):
     v = hsv[:, :, 2]
 
     hi = cp.dstack([hi, hi, hi]).astype(cp.uint8) % 6
-    out = cp.choose(hi, [cp.dstack((v, t, p)),
-                         cp.dstack((q, v, p)),
-                         cp.dstack((p, v, t)),
-                         cp.dstack((p, q, v)),
-                         cp.dstack((t, p, v)),
-                         cp.dstack((v, p, q))])
+    out = cp.choose(hi, cp.array([cp.dstack((v, t, p)),
+                                  cp.dstack((q, v, p)),
+                                  cp.dstack((p, v, t)),
+                                  cp.dstack((p, q, v)),
+                                  cp.dstack((t, p, v)),
+                                  cp.dstack((v, p, q))]))
 
     return cp.asnumpy(out)
 
@@ -70,7 +70,7 @@ def rgb_to_hsv(rgb):
     out[idx][:, 0] = (rgb[idx][:, 1] - rgb[idx][:, 2]) / delta[idx]
 
     # green is max
-    idx = (rgb[:, :][:, 1] == out_v)
+    idx = (rgb[:, :, 1] == out_v)
     out[idx][:, 0] = 2. + (rgb[idx][:, 2] - rgb[idx][:, 0]) / delta[idx]
 
     # blue is max
