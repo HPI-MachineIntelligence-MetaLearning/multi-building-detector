@@ -26,7 +26,7 @@ def hsv_to_rgb(hsv):
     v = hsv[:, :, 2]
 
     hi = cp.dstack([hi, hi, hi]).astype(cp.uint8) % 6
-    out = cp.choose(hi, cp.array([cp.dstack((v, t, p)),
+    out = cp.choose(hi, cp.stack([cp.dstack((v, t, p)),
                                   cp.dstack((q, v, p)),
                                   cp.dstack((p, v, t)),
                                   cp.dstack((p, q, v)),
