@@ -3,7 +3,7 @@ import xml.etree.ElementTree as ET
 import chainer
 from chainercv.utils import read_image
 
-class XMLDataset(chainer.dataset.DatasetMixin):
+class ImageBoundingBoxDataset(chainer.dataset.DatasetMixin):
 
     def __init__(self, annotations):
         self.annotations = annotations

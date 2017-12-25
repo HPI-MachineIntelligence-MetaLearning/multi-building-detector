@@ -9,7 +9,7 @@ from chainercv.links import SSD300
 from chainercv.links.model.ssd import GradientScaling
 from multibuildingdetector.transforms.augmentation import ImageAugmentation
 from multibuildingdetector.multiboxtrainchain import MultiboxTrainChain
-from .readers import reader, xmldataset
+from .readers import XMLReader
 from chainer.datasets import TransformDataset
 from chainer.training import extensions
 
@@ -27,7 +27,7 @@ def run(input_dir, output, batch_size, train_split=0.8, iterator='SerialIterator
         print('Pretrained model file not found, ' +
               'using imagenet as default.')
         pretrained_model = 'imagenet'
-    model = SSD300(n_fg_class=len(xmldataset.LABEL_NAMES),
+    model = SSD300(n_fg_class=len(XMLReader.LABEL_NAMES),
                    pretrained_model=pretrained_model)
     model.use_preset('evaluate')
     train_chain = MultiboxTrainChain(model)
@@ -36,7 +36,7 @@ def run(input_dir, output, batch_size, train_split=0.8, iterator='SerialIterator
         chainer.cuda.get_device_from_id(device).use()
         model.to_gpu()
 
-    train, test = reader.load_train_test_set(input_dir, 0.8)
+    train, test = XMLReader.load_train_test_set(input_dir, 0.8)
 
     augmented_train = TransformDataset(
         train,
@@ -65,7 +65,7 @@ def run(input_dir, output, batch_size, train_split=0.8, iterator='SerialIterator
     trainer.extend(
         DetectionVOCEvaluator(
             test_iter, model, use_07_metric=True,
-            label_names=xmldataset.LABEL_NAMES),
+            label_names=XMLReader.LABEL_NAMES),
         trigger=(10000, 'iteration'))
 
     log_interval = 10, 'iteration'
