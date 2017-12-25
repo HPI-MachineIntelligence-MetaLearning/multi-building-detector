@@ -5,7 +5,7 @@ import xml.etree.ElementTree as ET
 from sklearn.model_selection import train_test_split
 from chainercv.utils import read_image
 
-from .xmldataset import XMLDataset
+from .ImageBoundingBoxDataset import ImageBoundingBoxDataset
 
 
 LABEL_NAMES = ('other',
@@ -30,7 +30,7 @@ def load_train_test_set(data_dir, train_size=0.8, img_type='jpg'):
     train, test = train_test_split(annotations, train_size=train_size)
     print("Split: {0}, Train size: {1}, Test size: {2}"
           .format(train_size, len(train), len(test)))
-    return XMLDataset(train), XMLDataset(test)
+    return ImageBoundingBoxDataset(train), ImageBoundingBoxDataset(test)
 
 
 def parse_annotations(img_path):
