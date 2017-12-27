@@ -52,67 +52,39 @@ def rgb_to_hsv(rgb):
     ----------
     .. [1] http://en.wikipedia.org/wiki/HSL_and_HSV
     """
-    try:
-        delta = cp.array(rgb.ptp(-1))
-        rgb = cp.array(rgb)
-        out = cp.empty_like(rgb)
-    except:
-        print('Error in init')
-        return rgb
+    delta = cp.array(rgb.ptp(-1))
+    rgb = cp.array(rgb)
+    out = cp.empty_like(rgb)
 
     # -- V channel
     out_v = rgb.max(-1)
 
     # -- S channel
     # Ignore warning for zero divided by zero
-    try:
-        out_s = delta / out_v
-        out_s[delta == 0.] = 0.
-    except:
-        print('Error in s')
-        return cp.asnumpy(rgb)
+    out_s = delta / out_v
+    out_s[delta == 0.] = 0.
 
     # -- H channel
     # red is max
-    try:
-        idx = (rgb[:, :, 0] == out_v)
-        out[idx][:, 0] = (rgb[idx][:, 1] - rgb[idx][:, 2]) / delta[idx]
-    except:
-        print('Error in red')
-        return cp.asnumpy(rgb)
+    idx = (rgb[:, :, 0] == out_v)
+    out[idx][:, 0] = (rgb[idx][:, 1] - rgb[idx][:, 2]) / delta[idx]
 
     # green is max
-    try:
-        idx = (rgb[:, :, 1] == out_v)
-        out[idx][:, 0] = 2. + (rgb[idx][:, 2] - rgb[idx][:, 0]) / delta[idx]
-    except:
-        print('Error in green')
-        return cp.asnumpy(rgb)
+    idx = (rgb[:, :, 1] == out_v)
+    out[idx][:, 0] = 2. + (rgb[idx][:, 2] - rgb[idx][:, 0]) / delta[idx]
 
     # blue is max
-    try:
-        idx = (rgb[:, :, 2] == out_v)
-        out[idx][:, 0] = 4. + (rgb[idx][:, 0] - rgb[idx][:, 1]) / delta[idx]
-        out_h = (out[:, :, 0] / 6.) % 1.
-        out_h[delta == 0.] = 0.
-    except:
-        print('Error in blue')
-        return cp.asnumpy(rgb)
+    idx = (rgb[:, :, 2] == out_v)
+    out[idx][:, 0] = 4. + (rgb[idx][:, 0] - rgb[idx][:, 1]) / delta[idx]
+    out_h = (out[:, :, 0] / 6.) % 1.
+    out_h[delta == 0.] = 0.
 
     # -- output
-    try:
-        out[:, :, 0] = out_h
-        out[:, :, 1] = out_s
-        out[:, :, 2] = out_v
-    except:
-        print('Error in out')
-        return cp.asnumpy(rgb)
+    out[:, :, 0] = out_h
+    out[:, :, 1] = out_s
+    out[:, :, 2] = out_v
 
     # remove NaN
-    try:
-        out[cp.isnan(out)] = 0
-    except:
-        print('Error in nan')
-        return cp.asnumpy(rgb)
+    out[cp.isnan(out)] = 0
 
     return cp.asnumpy(out)
