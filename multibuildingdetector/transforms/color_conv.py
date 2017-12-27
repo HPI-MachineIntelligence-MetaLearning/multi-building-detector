@@ -54,7 +54,7 @@ def rgb_to_hsv(rgb):
     """
     delta = cp.array(rgb.ptp(-1))
     # -- V channel
-    out_v = rgb.max(-1)
+    out_v = cp.array(rgb.max(-1))
     rgb = cp.array(rgb)
     out = cp.empty_like(rgb)
 
