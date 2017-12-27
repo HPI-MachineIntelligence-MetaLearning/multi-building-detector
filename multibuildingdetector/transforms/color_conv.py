@@ -53,11 +53,10 @@ def rgb_to_hsv(rgb):
     .. [1] http://en.wikipedia.org/wiki/HSL_and_HSV
     """
     delta = cp.array(rgb.ptp(-1))
-    rgb = cp.array(rgb)
-    out = cp.empty_like(rgb)
-
     # -- V channel
     out_v = rgb.max(-1)
+    rgb = cp.array(rgb)
+    out = cp.empty_like(rgb)
 
     # -- S channel
     # Ignore warning for zero divided by zero
