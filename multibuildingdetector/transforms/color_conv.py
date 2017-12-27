@@ -52,38 +52,60 @@ def rgb_to_hsv(rgb):
     ----------
     .. [1] http://en.wikipedia.org/wiki/HSL_and_HSV
     """
-    delta = cp.array(rgb.ptp(-1))
+    try:
+        delta = cp.array(rgb.ptp(-1))
+        rgb = cp.array(rgb)
+        out = cp.empty_like(rgb)
+    except:
+        print('Error in init')
+
     # -- V channel
-    out_v = cp.array(rgb.max(-1))
-    rgb = cp.array(rgb)
-    out = cp.empty_like(rgb)
+    out_v = rgb.max(-1)
 
     # -- S channel
     # Ignore warning for zero divided by zero
-    out_s = delta / out_v
-    out_s[delta == 0.] = 0.
+    try:
+        out_s = delta / out_v
+        out_s[delta == 0.] = 0.
+    except:
+        print('Error in ^s')
 
     # -- H channel
     # red is max
-    idx = (rgb[:, :, 0] == out_v)
-    out[idx][:, 0] = (rgb[idx][:, 1] - rgb[idx][:, 2]) / delta[idx]
+    try:
+        idx = (rgb[:, :, 0] == out_v)
+        out[idx][:, 0] = (rgb[idx][:, 1] - rgb[idx][:, 2]) / delta[idx]
+    except:
+        print('Error in red')
 
     # green is max
-    idx = (rgb[:, :, 1] == out_v)
-    out[idx][:, 0] = 2. + (rgb[idx][:, 2] - rgb[idx][:, 0]) / delta[idx]
+    try:
+        idx = (rgb[:, :, 1] == out_v)
+        out[idx][:, 0] = 2. + (rgb[idx][:, 2] - rgb[idx][:, 0]) / delta[idx]
+    except:
+        print('Error in green')
 
     # blue is max
-    idx = (rgb[:, :, 2] == out_v)
-    out[idx][:, 0] = 4. + (rgb[idx][:, 0] - rgb[idx][:, 1]) / delta[idx]
-    out_h = (out[:, :, 0] / 6.) % 1.
-    out_h[delta == 0.] = 0.
+    try:
+        idx = (rgb[:, :, 2] == out_v)
+        out[idx][:, 0] = 4. + (rgb[idx][:, 0] - rgb[idx][:, 1]) / delta[idx]
+        out_h = (out[:, :, 0] / 6.) % 1.
+        out_h[delta == 0.] = 0.
+    except:
+        print('Error in blue')
 
     # -- output
-    out[:, :, 0] = out_h
-    out[:, :, 1] = out_s
-    out[:, :, 2] = out_v
+    try:
+        out[:, :, 0] = out_h
+        out[:, :, 1] = out_s
+        out[:, :, 2] = out_v
+    except:
+        print('Error in out')
 
     # remove NaN
-    out[cp.isnan(out)] = 0
+    try:
+        out[cp.isnan(out)] = 0
+    except:
+        print('Error in nan')
 
     return cp.asnumpy(out)
