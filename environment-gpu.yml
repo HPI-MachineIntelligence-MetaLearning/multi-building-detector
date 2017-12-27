@@ -9,3 +9,5 @@ dependencies:
   - cupy==2.1.0
   - chainercv==0.7.0.0
   - pyyaml==3.12
+  - scikit-learn==0.19.1
+  - scipy==1.0.0

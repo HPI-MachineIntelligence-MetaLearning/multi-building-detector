@@ -9,7 +9,7 @@ from chainercv.links import SSD300
 from chainercv.links.model.ssd import GradientScaling
 from multibuildingdetector.transforms.augmentation import ImageAugmentation
 from multibuildingdetector.multiboxtrainchain import MultiboxTrainChain
-from .readers import xmldataset
+from .readers import reader, xmldataset
 from chainer.datasets import TransformDataset
 from chainer.training import extensions
 
@@ -19,8 +19,8 @@ def load_config(path):
         return yaml.load(f)
 
 
-def run(input, output, batch_size, iterator='SerialIterator', device=-1,
-        pretrained_model='', save_trigger=10000):
+def run(input_dir, output, batch_size, train_split=0.8, iterator='SerialIterator',
+        device=-1, pretrained_model='', save_trigger=10000):
     if pretrained_model and os.path.isfile(pretrained_model):
         print('Pretrained model {} loaded.'.format(pretrained_model))
     else:
@@ -36,12 +36,13 @@ def run(input, output, batch_size, iterator='SerialIterator', device=-1,
         chainer.cuda.get_device_from_id(device).use()
         model.to_gpu()
 
-    train = TransformDataset(
-        xmldataset.XMLDataset(input),
-        ImageAugmentation(model.coder, model.insize, model.mean))
-    train_iter = getattr(chainer.iterators, iterator)(train, batch_size)
+    train, test = reader.load_train_test_set(input_dir, 0.8)
 
-    test = xmldataset.XMLDataset(input, split='test')
+    augmented_train = TransformDataset(
+        train,
+        ImageAugmentation(model.coder, model.insize, model.mean))
+    train_iter = getattr(chainer.iterators, iterator)(augmented_train, batch_size)
+
     test_iter = chainer.iterators.SerialIterator(
         test, batch_size, repeat=False, shuffle=False)
 
