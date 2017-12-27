@@ -58,6 +58,7 @@ def rgb_to_hsv(rgb):
         out = cp.empty_like(rgb)
     except:
         print('Error in init')
+        return rgb
 
     # -- V channel
     out_v = rgb.max(-1)
@@ -68,7 +69,8 @@ def rgb_to_hsv(rgb):
         out_s = delta / out_v
         out_s[delta == 0.] = 0.
     except:
-        print('Error in ^s')
+        print('Error in s')
+        return cp.asnumpy(rgb)
 
     # -- H channel
     # red is max
@@ -77,6 +79,7 @@ def rgb_to_hsv(rgb):
         out[idx][:, 0] = (rgb[idx][:, 1] - rgb[idx][:, 2]) / delta[idx]
     except:
         print('Error in red')
+        return cp.asnumpy(rgb)
 
     # green is max
     try:
@@ -84,6 +87,7 @@ def rgb_to_hsv(rgb):
         out[idx][:, 0] = 2. + (rgb[idx][:, 2] - rgb[idx][:, 0]) / delta[idx]
     except:
         print('Error in green')
+        return cp.asnumpy(rgb)
 
     # blue is max
     try:
@@ -93,6 +97,7 @@ def rgb_to_hsv(rgb):
         out_h[delta == 0.] = 0.
     except:
         print('Error in blue')
+        return cp.asnumpy(rgb)
 
     # -- output
     try:
@@ -101,11 +106,13 @@ def rgb_to_hsv(rgb):
         out[:, :, 2] = out_v
     except:
         print('Error in out')
+        return cp.asnumpy(rgb)
 
     # remove NaN
     try:
         out[cp.isnan(out)] = 0
     except:
         print('Error in nan')
+        return cp.asnumpy(rgb)
 
     return cp.asnumpy(out)
