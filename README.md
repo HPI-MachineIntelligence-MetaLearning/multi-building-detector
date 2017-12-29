@@ -31,6 +31,8 @@ iterator: <chainer iterator class>
 device: <gpu index or -1 for cpu>
 pretrained_model: <path to a pretrained model file saved prior to continue training>
 save_trigger: <number of iterations after which to save the current model>
+train_split: <float number between 0 and 1 to determine train test ratio>
+parser_module: <module which provides get_annotations method returning list of (img_file, bbox, label)>
 ```
 
 # Usage
