@@ -1,6 +1,5 @@
-import numpy as np
-import xml.etree.ElementTree as ET
 import chainer
+
 from chainercv.utils import read_image
 
 class ImageBoundingBoxDataset(chainer.dataset.DatasetMixin):

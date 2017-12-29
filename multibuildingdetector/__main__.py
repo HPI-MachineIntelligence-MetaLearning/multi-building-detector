@@ -2,6 +2,7 @@ import chainer
 import argparse
 import yaml
 import os
+import importlib
 
 from chainer.optimizer import WeightDecay
 from chainercv.extensions import DetectionVOCEvaluator
@@ -9,9 +10,9 @@ from chainercv.links import SSD300
 from chainercv.links.model.ssd import GradientScaling
 from multibuildingdetector.transforms.augmentation import ImageAugmentation
 from multibuildingdetector.multiboxtrainchain import MultiboxTrainChain
-from .readers import XMLReader
 from chainer.datasets import TransformDataset
 from chainer.training import extensions
+from .reader import load_train_test_set
 
 
 def load_config(path):
@@ -20,14 +21,17 @@ def load_config(path):
 
 
 def run(input_dir, output, batch_size, train_split=0.8, iterator='SerialIterator',
-        device=-1, pretrained_model='', save_trigger=10000):
+        device=-1, pretrained_model='', save_trigger=10000,
+        parser_module='XMLParser'):
     if pretrained_model and os.path.isfile(pretrained_model):
         print('Pretrained model {} loaded.'.format(pretrained_model))
     else:
         print('Pretrained model file not found, ' +
               'using imagenet as default.')
         pretrained_model = 'imagenet'
-    model = SSD300(n_fg_class=len(XMLReader.LABEL_NAMES),
+    parser = importlib.import_module('multibuildingdetector.parsers.{}'
+                                     .format(parser_module))
+    model = SSD300(n_fg_class=len(parser.LABEL_NAMES),
                    pretrained_model=pretrained_model)
     model.use_preset('evaluate')
     train_chain = MultiboxTrainChain(model)
@@ -36,7 +40,7 @@ def run(input_dir, output, batch_size, train_split=0.8, iterator='SerialIterator
         chainer.cuda.get_device_from_id(device).use()
         model.to_gpu()
 
-    train, test = XMLReader.load_train_test_set(input_dir, 0.8)
+    train, test = load_train_test_set(input_dir, train_split, parser)
 
     augmented_train = TransformDataset(
         train,
@@ -65,7 +69,7 @@ def run(input_dir, output, batch_size, train_split=0.8, iterator='SerialIterator
     trainer.extend(
         DetectionVOCEvaluator(
             test_iter, model, use_07_metric=True,
-            label_names=XMLReader.LABEL_NAMES),
+            label_names=parser.LABEL_NAMES),
         trigger=(10000, 'iteration'))
 
     log_interval = 10, 'iteration'
