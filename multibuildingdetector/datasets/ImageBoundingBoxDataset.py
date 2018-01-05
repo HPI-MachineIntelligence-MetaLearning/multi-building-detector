@@ -2,6 +2,7 @@ import chainer
 
 from chainercv.utils import read_image
 
+
 class ImageBoundingBoxDataset(chainer.dataset.DatasetMixin):
 
     def __init__(self, annotations):
@@ -13,4 +14,5 @@ class ImageBoundingBoxDataset(chainer.dataset.DatasetMixin):
     def get_example(self, i):
         img_file, bbox, label = self.annotations[i]
         img = read_image(img_file, color=True)
+        print("Img label: ", label)
         return img, bbox, label

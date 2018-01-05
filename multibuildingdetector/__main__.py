@@ -94,6 +94,7 @@ def main():
 
     config_path = vars(parser.parse_args())['config']
     config = load_config(config_path)
+    print('Configuration: ', config)
     run(**config)
 
 

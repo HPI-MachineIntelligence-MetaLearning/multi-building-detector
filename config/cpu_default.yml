@@ -1,6 +1,6 @@
 input_dir: ../labeled_images/
 output: result
-batch_size: 32
+batch_size: 5
 train_split: 0.8
 iterator: SerialIterator
 pretrained_model: 'result/model'
