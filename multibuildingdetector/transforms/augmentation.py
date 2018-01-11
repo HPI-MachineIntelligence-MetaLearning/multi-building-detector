@@ -97,11 +97,11 @@ def random_distort(
 
     if random.randrange(2):
         cv_img = contrast(cv_img, contrast_low, contrast_high)
-        cv_img = saturation(cv_img, saturation_low, saturation_high)
-        cv_img = hue(cv_img, hue_delta)
+        # cv_img = saturation(cv_img, saturation_low, saturation_high)
+        # cv_img = hue(cv_img, hue_delta)
     else:
-        cv_img = saturation(cv_img, saturation_low, saturation_high)
-        cv_img = hue(cv_img, hue_delta)
+        # cv_img = saturation(cv_img, saturation_low, saturation_high)
+        # cv_img = hue(cv_img, hue_delta)
         cv_img = contrast(cv_img, contrast_low, contrast_high)
 
     return cv_img.astype(np.float32).transpose((2, 0, 1))[::-1]

@@ -70,7 +70,7 @@ def run(input_dir, output, batch_size, train_split=0.8, iterator='SerialIterator
         DetectionVOCEvaluator(
             test_iter, model, use_07_metric=True,
             label_names=parser.LABEL_NAMES),
-        trigger=(10000, 'iteration'))
+        trigger=(1000, 'iteration'))
 
     log_interval = 10, 'iteration'
     trainer.extend(extensions.LogReport(trigger=log_interval))
