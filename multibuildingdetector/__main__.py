@@ -36,7 +36,7 @@ def run(input_dir, output, batch_size, train_split=0.8, iterator='SerialIterator
     model.use_preset('evaluate')
     train_chain = MultiboxTrainChain(model)
 
-    if device > 0:
+    if device >= 0:
         chainer.cuda.get_device_from_id(device).use()
         model.to_gpu()
 
