@@ -1,22 +1,26 @@
-import chainer
 import argparse
-import yaml
-import os
 import importlib
+import os
+from os.path import dirname, join, realpath
 
-from chainer.optimizer import WeightDecay
-from chainercv.extensions import DetectionVOCEvaluator
-from chainercv.links import SSD300
-from chainercv.links.model.ssd import GradientScaling
-from multibuildingdetector.transforms.augmentation import ImageAugmentation
-from multibuildingdetector.multiboxtrainchain import MultiboxTrainChain
+import chainer
+import yaml
 from chainer.datasets import TransformDataset
+from chainer.optimizer import WeightDecay
 from chainer.training import extensions
+from chainercv.extensions import DetectionVOCEvaluator
+from chainercv.links.model.ssd import GradientScaling
+
+from multibuildingdetector.models.ssd_triplet import SSDTriplet
+from multibuildingdetector.multiboxtrainchain import MultiboxTrainChain
+from multibuildingdetector.transforms.augmentation import ImageAugmentation
 from .reader import load_train_test_set
+
+PROJECT_DIR = join(dirname(realpath(__file__)), '..')
 
 
 def load_config(path):
-    with open(path, 'r') as f:
+    with open(os.path.join(PROJECT_DIR, path), 'r') as f:
         return yaml.load(f)
 
 
@@ -31,7 +35,7 @@ def run(input_dir, output, batch_size, train_split=0.8, iterator='SerialIterator
         pretrained_model = 'imagenet'
     parser = importlib.import_module('multibuildingdetector.parsers.{}'
                                      .format(parser_module))
-    model = SSD300(n_fg_class=len(parser.LABEL_NAMES),
+    model = SSDTriplet(n_fg_class=len(parser.LABEL_NAMES),
                    pretrained_model=pretrained_model)
     model.use_preset('evaluate')
     train_chain = MultiboxTrainChain(model)
@@ -80,8 +84,8 @@ def run(input_dir, output, batch_size, train_split=0.8, iterator='SerialIterator
          'main/loss', 'main/loss/loc', 'main/loss/conf',
          'validation/main/map']), )
     trainer.extend(extensions.snapshot_object(
-                   model, 'model_iter_{.updater.iteration}'),
-                   trigger=(save_trigger, 'iteration'))
+        model, 'model_iter_{.updater.iteration}'),
+        trigger=(save_trigger, 'iteration'))
 
     trainer.extend(extensions.ProgressBar(update_interval=10))
     trainer.run()
