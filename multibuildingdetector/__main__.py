@@ -14,7 +14,7 @@ from chainercv.links.model.ssd import GradientScaling
 from multibuildingdetector.models.ssd_triplet import SSDTriplet
 from multibuildingdetector.multiboxtrainchain import MultiboxTrainChain
 from multibuildingdetector.transforms.augmentation import ImageAugmentation
-from .reader import load_train_test_set
+from multibuildingdetector.reader import load_train_test_set
 
 PROJECT_DIR = join(dirname(realpath(__file__)), '..')
 
