@@ -1,4 +1,5 @@
 import chainer.functions as F
+
 import itertools
 
 from chainercv import utils
@@ -38,15 +39,20 @@ class SSDTripletLoss:
         labels = []
         for box, conf, label in zip(mb_boxs, mb_confs, self.gt_mb_labels):
             indices = utils.non_maximum_suppression(box, self.nms_thresh)
+
             confs.append(conf[indices])
             labels.append(label[indices])
         # TODO: Build tuples of label and feature
-        return confs, labels
+        confs = self.xp.concatenate(confs)
+        labels = self.xp.concatenate(labels)
+        return zip(labels, confs)
 
     def _compute_triplet_loss(self, mb_locs, mb_confs):
         mb_boxs = [self._decode_bbox(mb_loc) for mb_loc in mb_locs.array]
         labeled_features = self._filter_overlapping_bboxs(mb_boxs, mb_confs)
         triplets = self._build_triplets(labeled_features)
+        if not triplets:
+            return 0
         anchors, positives, negatives = zip(*[self.xp.stack(elem)
                                               for elem in triplets])
         return F.triplet(anchors, positives, negatives)
