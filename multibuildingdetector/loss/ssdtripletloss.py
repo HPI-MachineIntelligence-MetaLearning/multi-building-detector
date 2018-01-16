@@ -9,7 +9,7 @@ from collections import defaultdict
 class SSDTripletLoss:
 
     def __init__(self, gt_mb_locs, gt_mb_labels, coder,
-                 nms_thresh=0.1):
+                 nms_thresh=0.5):
         self.gt_mb_locs = gt_mb_locs
         self.gt_mb_labels = gt_mb_labels
         self.coder = coder
@@ -50,11 +50,12 @@ class SSDTripletLoss:
     def _compute_triplet_loss(self, mb_locs, mb_confs):
         mb_boxs = [self._decode_bbox(mb_loc) for mb_loc in mb_locs.array]
         labeled_features = self._filter_overlapping_bboxs(mb_boxs, mb_confs)
-        triplets = self._build_triplets(labeled_features)
-        if not triplets:
+        anchors, positives, negatives = self._build_triplets(labeled_features)
+        if not anchors:
             return 0
-        anchors, positives, negatives = zip(*[self.xp.stack(elem)
-                                              for elem in triplets])
+        anchors = self.xp.stack(anchors)
+        positives = self.xp.stack(positives)
+        negatives = self.xp.stack(negatives)
         return F.triplet(anchors, positives, negatives)
 
     def _build_triplets(self, labeled_features):
@@ -62,15 +63,24 @@ class SSDTripletLoss:
 
         label_groups = self._get_label_groups(labeled_features)
 
-        if len(label_groups) < 3:
-            return []
+        if len(label_groups) < 2:
+            return [], [], []
         for label, group in label_groups.items():
-            if len(group) < 2:
+
+            # Do not choose background label as anchor
+            if len(group) < 2 or label == 0:
                 continue
             positives = itertools.combinations(group, 2)
             built_triplets = self._add_negatives(positives, label_groups, label)
             triplets = itertools.chain(triplets, built_triplets)
-        return triplets
+        anchors = []
+        positives = []
+        negatives = []
+        for anchor, positive, negative in triplets:
+            anchors.append(anchor)
+            negatives.append(negative)
+            positives.append(positive)
+        return anchors, positives, negatives
 
     @staticmethod
     def _get_label_groups(labeled_features):
@@ -87,7 +97,7 @@ class SSDTripletLoss:
             for negative in group:
                 for positive in positives:
                     pos_copy = positive[:]
-                    pos_copy.append(negative)
+                    pos_copy += (negative,)
                     yield pos_copy
 
     def _compute_loc_loss(self, mb_locs):
