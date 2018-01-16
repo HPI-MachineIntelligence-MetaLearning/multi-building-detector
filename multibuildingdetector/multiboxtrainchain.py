@@ -1,8 +1,4 @@
 import chainer
-import chainer.functions as F
-import numpy as np
-
-from chainercv import utils
 
 from multibuildingdetector.loss.ssdtripletloss import SSDTripletLoss
 

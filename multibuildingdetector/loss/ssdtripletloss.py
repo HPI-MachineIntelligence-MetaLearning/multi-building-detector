@@ -37,13 +37,11 @@ class SSDTripletLoss:
     def _filter_overlapping_bboxs(self, mb_boxs, mb_confs):
         confs = []
         labels = []
-        # conf[x] is a Variable, label[x] is a np/cp array
         for box, conf, label in zip(mb_boxs, mb_confs, self.gt_mb_labels):
             indices = utils.non_maximum_suppression(box, self.nms_thresh)
 
             confs.append(conf[indices])
             labels.append(label[indices])
-        # TODO: Build tuples of label and feature
         confs = F.concat(confs, axis=0)
         labels = self.xp.concatenate(labels)
         return zip(labels, confs)
@@ -87,13 +85,7 @@ class SSDTripletLoss:
     def _get_label_groups(labeled_features):
         label_groups = defaultdict(list)
         for label, feature in labeled_features:
-            x = label
-            # My first dirty hack of 2018. Screw New Year's resolutions!
-            isGPU = str(type(label)) == "<class 'cupy.core.core.ndarray'>"
-            if isGPU:
-                label_groups[label.get().item()].append(feature)
-            else:
-                label_groups[label].append(feature)
+            label_groups[label].append(feature)
         return label_groups
 
     @staticmethod
