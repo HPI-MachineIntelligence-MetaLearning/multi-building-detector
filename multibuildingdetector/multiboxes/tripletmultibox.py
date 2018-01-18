@@ -40,7 +40,7 @@ class TripletMultibox(chainer.Chain):
         super().__init__()
         with self.init_scope():
             self.loc = chainer.ChainList()
-            self.conf = chainer.ChainList()
+            self.features = chainer.ChainList()
 
         if initialW is None:
             initialW = initializers.LeCunUniform()
@@ -51,7 +51,7 @@ class TripletMultibox(chainer.Chain):
         for ar in aspect_ratios:
             n = (len(ar) + 1) * 2
             self.loc.add_link(L.Convolution2D(n * 4, 3, pad=1, **init))
-            self.conf.add_link(L.Convolution2D(
+            self.features.add_link(L.Convolution2D(
                 n * self._input_multiplier, 3, pad=1, **init))
 
     def __call__(self, xs):
@@ -87,7 +87,7 @@ class TripletMultibox(chainer.Chain):
             mb_loc = F.reshape(mb_loc, (mb_loc.shape[0], -1, 4))
             mb_locs.append(mb_loc)
 
-            mb_conf = self.conf[i](x)
+            mb_conf = self.features[i](x)
             mb_conf = F.transpose(mb_conf, (0, 2, 3, 1))
             mb_conf = F.reshape(
                 mb_conf, (mb_conf.shape[0], -1, self._input_multiplier))

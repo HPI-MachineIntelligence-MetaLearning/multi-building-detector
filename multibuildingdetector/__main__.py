@@ -27,6 +27,7 @@ def load_config(path):
 def run(input_dir, output, batch_size, train_split=0.8, iterator='SerialIterator',
         device=-1, pretrained_model='', save_trigger=10000,
         parser_module='XMLParser'):
+    pretrained_model = join(PROJECT_DIR, pretrained_model)
     if pretrained_model and os.path.isfile(pretrained_model):
         print('Pretrained model {} loaded.'.format(pretrained_model))
     else:
