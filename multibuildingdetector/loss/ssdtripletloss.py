@@ -1,7 +1,9 @@
 import chainer.functions as F
+import chainer
 
 import itertools
 
+import numpy as np
 from chainercv import utils
 from collections import defaultdict
 
@@ -17,7 +19,12 @@ class SSDTripletLoss:
         self.xp = coder.xp
 
     def __call__(self, mb_locs, mb_confs):
-        loc_loss = self._compute_loc_loss(mb_locs)
+        positive = self.gt_mb_labels > 0
+        n_positive = positive.sum()
+        if n_positive == 0:
+            z = chainer.Variable(self.xp.zeros((), dtype=np.float32))
+            return z, z
+        loc_loss = self._compute_loc_loss(mb_locs, n_positive, positive)
         triplet_loss = self._compute_triplet_loss(mb_locs, mb_confs)
         return loc_loss, triplet_loss
 
@@ -51,7 +58,7 @@ class SSDTripletLoss:
         labeled_features = self._filter_overlapping_bboxs(mb_boxs, mb_confs)
         anchors, positives, negatives = self._build_triplets(labeled_features)
         if not anchors:
-            return 0
+            return chainer.Variable(self.xp.zeros((), dtype=np.float32))
         anchors = F.stack(anchors)
         positives = F.stack(positives)
         negatives = F.stack(negatives)
@@ -99,10 +106,7 @@ class SSDTripletLoss:
                     pos_copy += (negative,)
                     yield pos_copy
 
-    def _compute_loc_loss(self, mb_locs):
-        positive = self.gt_mb_labels > 0
-        n_positive = positive.sum()
-
+    def _compute_loc_loss(self, mb_locs, n_positive, positive):
         loc_loss = F.huber_loss(mb_locs, self.gt_mb_locs, 1, reduce='no')
         loc_loss = F.sum(loc_loss, axis=-1)
         loc_loss *= positive.astype(loc_loss.dtype)

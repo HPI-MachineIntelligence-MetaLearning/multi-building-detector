@@ -1,6 +1,6 @@
-input_dir: /Users/Fabian/Documents/HPI/Master/17WS/machineintelligence/repositories/labeled_images/
+input_dir: ../labeled_images/
 output: result
-batch_size: 2
+batch_size: 32
 train_split: 0.8
 iterator: SerialIterator
 pretrained_model: 'result/model'

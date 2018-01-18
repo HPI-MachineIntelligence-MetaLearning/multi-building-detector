@@ -17,9 +17,7 @@ class MultiboxTrainChain(chainer.Chain):
         mb_locs, mb_confs = self.model(imgs)
         sddtripletloss = SSDTripletLoss(gt_mb_locs, gt_mb_labels, coder)
         loc_loss, conf_loss = sddtripletloss(mb_locs, mb_confs)
-
-        print('Img size: ', len(imgs), 'Conf size: ', len(mb_confs), 'Label size: ', len(gt_mb_labels))
-        print('matrix size: ', mb_confs.shape, 'Label shape', gt_mb_labels.shape)
+        print('Loc loss: {}, Conf Loss: {}'.format(loc_loss, conf_loss))
         loss = loc_loss * self.alpha + conf_loss
 
         chainer.reporter.report(
