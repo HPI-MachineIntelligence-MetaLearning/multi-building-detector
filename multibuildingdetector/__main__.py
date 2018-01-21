@@ -1,18 +1,17 @@
 import argparse
 import importlib
 import os
-from os.path import dirname, join, realpath
-
 import chainer
 import yaml
+import json
+
 from chainer.datasets import TransformDataset
 from chainer.optimizer import WeightDecay
 from chainer.training import extensions
 from chainercv.extensions import DetectionVOCEvaluator
 from chainercv.links.model.ssd import GradientScaling
+from os.path import dirname, join, realpath
 
-from multibuildingdetector.models.ssd_triplet import SSDTriplet
-from multibuildingdetector.multiboxtrainchain import MultiboxTrainChain
 from multibuildingdetector.transforms.augmentation import ImageAugmentation
 from multibuildingdetector.reader import load_train_test_set
 
@@ -24,9 +23,24 @@ def load_config(path):
         return yaml.load(f)
 
 
-def run(input_dir, output, batch_size, train_split=0.8, iterator='SerialIterator',
+def _import_module(package_template, module=''):
+    return importlib.import_module(package_template.format(module))
+
+
+def _import_class(class_path):
+    split = class_path.split('.')
+    class_name = split[-1]
+    package = '.'.join(split[:-1])
+    module = _import_module(package)
+    return getattr(module, class_name)
+
+
+def run(input_dir, output, batch_size, train_split=0.8,
+        iterator='SerialIterator',
         device=-1, pretrained_model='', save_trigger=10000,
-        parser_module='XMLParser'):
+        parser_module='XMLParser',
+        train_module='MultiboxTrainChain',
+        model_module='chainercv.links.SSD300'):
     pretrained_model = join(PROJECT_DIR, pretrained_model)
     if pretrained_model and os.path.isfile(pretrained_model):
         print('Pretrained model {} loaded.'.format(pretrained_model))
@@ -34,13 +48,13 @@ def run(input_dir, output, batch_size, train_split=0.8, iterator='SerialIterator
         print('Pretrained model file not found, ' +
               'using imagenet as default.')
         pretrained_model = 'imagenet'
-    parser = importlib.import_module('multibuildingdetector.parsers.{}'
-                                     .format(parser_module))
-    model = SSDTriplet(n_fg_class=len(parser.LABEL_NAMES),
-                   pretrained_model=pretrained_model)
-    model.use_preset('evaluate')
-    train_chain = MultiboxTrainChain(model)
+    parser = _import_module('multibuildingdetector.parsers.{}', parser_module)
 
+    model = _import_class(model_module)(n_fg_class=len(parser.LABEL_NAMES),
+                                        pretrained_model=pretrained_model)
+    model.use_preset('evaluate')
+    train_chain = _import_class('multibuildingdetector.trainchains.{}'
+                                .format(train_module))(model)
     if device > 0:
         chainer.cuda.get_device_from_id(device).use()
         model.to_gpu()
@@ -99,7 +113,7 @@ def main():
 
     config_path = vars(parser.parse_args())['config']
     config = load_config(config_path)
-    print('Configuration: ', config)
+    print('Configuration: ', json.dumps(config, indent=4))
     run(**config)
 
 

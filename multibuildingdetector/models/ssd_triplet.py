@@ -17,36 +17,6 @@ except ImportError:
 
 
 class SSDTriplet(SSD300):
-    """Single Shot Multibox Detector with 300x300 inputs.
-    This is a model of Single Shot Multibox Detector [#]_.
-    This model uses :class:`~chainercv.links.model.ssd.VGG16Extractor300` as
-    its feature extractor.
-    .. [#] Wei Liu, Dragomir Anguelov, Dumitru Erhan, Christian Szegedy,
-       Scott Reed, Cheng-Yang Fu, Alexander C. Berg.
-       SSD: Single Shot MultiBox Detector. ECCV 2016.
-    Args:
-       n_fg_class (int): The number of classes excluding the background.
-       pretrained_model (str): The weight file to be loaded.
-           This can take :obj:`'voc0712'`, `filepath` or :obj:`None`.
-           The default value is :obj:`None`.
-            * :obj:`'voc0712'`: Load weights trained on trainval split of \
-                PASCAL VOC 2007 and 2012. \
-                The weight file is downloaded and cached automatically. \
-                :obj:`n_fg_class` must be :obj:`20` or :obj:`None`. \
-                These weights were converted from the Caffe model provided by \
-                `the original implementation \
-                <https://github.com/weiliu89/caffe/tree/ssd>`_. \
-                The conversion code is `chainercv/examples/ssd/caffe2npz.py`.
-            * :obj:`'imagenet'`: Load weights of VGG-16 trained on ImageNet. \
-                The weight file is downloaded and cached automatically. \
-                This option initializes weights partially and the rests are \
-                initialized randomly. In this case, :obj:`n_fg_class` \
-                can be set to any number.
-            * `filepath`: A path of npz file. In this case, :obj:`n_fg_class` \
-                must be specified properly.
-            * :obj:`None`: Do not load weights.
-    """
-
     def __init__(self, n_fg_class=None, pretrained_model=None):
         n_fg_class, path = _check_pretrained_model(
             n_fg_class, pretrained_model, self._models)

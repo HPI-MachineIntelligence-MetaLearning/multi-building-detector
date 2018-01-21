@@ -33,6 +33,8 @@ pretrained_model: <path to a pretrained model file saved prior to continue train
 save_trigger: <number of iterations after which to save the current model>
 train_split: <float number between 0 and 1 to determine train test ratio>
 parser_module: <module which provides get_annotations method returning list of (img_file, bbox, label)>
+train_module: <exposed class in trainchains module>
+model_module: <class path to model based on chainercv ssd>
 ```
 
 # Usage
