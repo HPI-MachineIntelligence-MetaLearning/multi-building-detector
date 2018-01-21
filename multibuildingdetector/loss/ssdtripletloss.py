@@ -92,7 +92,10 @@ class SSDTripletLoss:
     def _get_label_groups(labeled_features):
         label_groups = defaultdict(list)
         for label, feature in labeled_features:
-            label_groups[label].append(feature)
+            if chainer.cuda.available:
+                label_groups[label.get().item()].append(feature)
+            else:
+                label_groups[label].append(feature)
         return label_groups
 
     @staticmethod
