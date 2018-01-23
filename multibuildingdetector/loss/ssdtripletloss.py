@@ -31,7 +31,7 @@ class SSDTripletLoss:
     def _decode_bbox(self, mb_loc):
         mb_bbox = self.coder._default_bbox.copy()
         mb_bbox[:, :2] += mb_loc[:, :2] * self.coder._variance[0] \
-                          * self.coder._default_bbox[:, 2:]
+                                        * self.coder._default_bbox[:, 2:]
         mb_bbox[:, 2:] *= self.xp.exp(mb_loc[:, 2:]
                                       * self.coder._variance[1])
 
@@ -48,9 +48,12 @@ class SSDTripletLoss:
             indices = utils.non_maximum_suppression(box, self.nms_thresh)
 
             confs.append(conf[indices])
-            labels.append(label[indices])
+            if chainer.cuda.available:
+                labels.append(label[indices].get())
+            else:
+                labels.append(label[indices])
         confs = F.concat(confs, axis=0)
-        labels = self.xp.concatenate(labels)
+        labels = np.concatenate(labels)
         return zip(labels, confs)
 
     def _compute_triplet_loss(self, mb_locs, mb_confs):
@@ -92,10 +95,7 @@ class SSDTripletLoss:
     def _get_label_groups(labeled_features):
         label_groups = defaultdict(list)
         for label, feature in labeled_features:
-            if chainer.cuda.available:
-                label_groups[label.get().item()].append(feature)
-            else:
-                label_groups[label].append(feature)
+            label_groups[label].append(feature)
         return label_groups
 
     @staticmethod
