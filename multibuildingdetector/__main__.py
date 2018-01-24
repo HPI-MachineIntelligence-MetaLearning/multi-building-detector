@@ -85,19 +85,21 @@ def run(input_dir, output, batch_size, train_split=0.8,
                                                    device=device)
     trainer = chainer.training.Trainer(updater, (120000, 'iteration'), output)
 
-    trainer.extend(
-        DetectionVOCEvaluator(
-            test_iter, model, use_07_metric=True,
-            label_names=parser.LABEL_NAMES),
-        trigger=(10000, 'iteration'))
+    log_fields = [*train_chain.loss_labels]
+    if train_module == 'MultiboxTrainChain':
+        trainer.extend(
+            DetectionVOCEvaluator(
+                test_iter, model, use_07_metric=True,
+                label_names=parser.LABEL_NAMES),
+            trigger=(10000, 'iteration'))
+        log_fields.append('validation/main/map')
 
     log_interval = 10, 'iteration'
     trainer.extend(extensions.LogReport(trigger=log_interval))
     trainer.extend(extensions.observe_lr(), trigger=log_interval)
     trainer.extend(extensions.PrintReport(
         ['epoch', 'iteration', 'lr',
-         'main/loss', 'main/loss/loc', 'main/loss/conf',
-         'validation/main/map']), )
+         *log_fields]))
     trainer.extend(extensions.snapshot_object(
         model, 'model_iter_{.updater.iteration}'),
         trigger=(save_trigger, 'iteration'))
