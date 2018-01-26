@@ -2,6 +2,7 @@ import chainer
 
 from chainercv.utils import read_image
 
+
 class ImageBoundingBoxDataset(chainer.dataset.DatasetMixin):
 
     def __init__(self, annotations):
