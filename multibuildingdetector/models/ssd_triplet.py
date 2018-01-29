@@ -1,11 +1,10 @@
 import warnings
 
 import chainer
-import chainer.functions as F
 import numpy as np
 from chainercv.links import SSD300
 from chainercv.links.model.ssd import VGG16Extractor300
-from chainercv.utils import download_model, non_maximum_suppression
+from chainercv.utils import download_model
 
 from multibuildingdetector.multiboxes.tripletmultibox import TripletMultibox
 
@@ -71,19 +70,7 @@ class SSDTriplet(SSD300):
             x = chainer.Variable(self.xp.stack(x))
             mb_locs, mb_confs = self(x)
         mb_locs, mb_confs = mb_locs.array, mb_confs.array
-
-        return self._filter_overlapping_bboxs(
-            mb_locs, mb_confs, self.nms_thresh)
-
-    def _filter_overlapping_bboxs(self, mb_boxs, mb_confs, thresh):
-        confs = []
-        for box, conf in zip(mb_boxs, mb_confs):
-            indices = non_maximum_suppression(box, thresh)
-
-            confs.append(conf[indices])
-        confs = F.concat(confs, axis=0)
-        print(confs.shape)
-        return confs
+        return mb_locs, mb_confs
 
 
 def _check_pretrained_model(n_fg_class, pretrained_model, models):

@@ -68,7 +68,9 @@ def run(input_dir, test_dir, output, batch_size, train_split=0.8,
     train_iter = getattr(chainer.iterators, iterator)(augmented_train, batch_size)
 
     test_iter = chainer.iterators.SerialIterator(
-        test, batch_size, repeat=False, shuffle=False)
+        TransformDataset(
+            test,
+            ImageAugmentation(model.coder, model.insize, model.mean)), batch_size, repeat=False, shuffle=False)
 
     optimizer = chainer.optimizers.Adam()
     optimizer.setup(train_chain)

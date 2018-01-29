@@ -1,8 +1,13 @@
 import copy
 import numpy as np
+from collections import defaultdict
+from statistics import mean
 
 from chainer import reporter
 import chainer.training.extensions
+from multibuildingdetector.loss.ssdtripletloss import SSDTripletLoss
+from scipy.spatial.distance import pdist
+
 
 from chainercv.utils import apply_prediction_to_iterator
 
@@ -50,6 +55,12 @@ class TripletEvaluator(chainer.training.extensions.Evaluator):
     default_name = 'validation'
     priority = chainer.training.PRIORITY_WRITER
 
+    def __init__(
+            self, iterator, target, label_names=None):
+        super(TripletEvaluator, self).__init__(
+            iterator, target)
+        self.label_names = label_names
+
     def evaluate(self):
         iterator = self._iterators['main']
         target = self._targets['main']
@@ -61,35 +72,29 @@ class TripletEvaluator(chainer.training.extensions.Evaluator):
             it = copy.copy(iterator)
 
         imgs, pred_values, gt_values = apply_prediction_to_iterator(
-            target, it)
+            target.predict, it)
         # delete unused iterator explicitly
         del imgs
-        print('Pred: ', list(pred_values))
-        print('GT: ', list(gt_values))
 
-        # mb_locs, mb_confs = pred_values
+        _, mb_confs = pred_values
 
-        # if len(gt_values) == 3:
-        #     gt_bboxes, gt_labels, gt_difficults = gt_values
-        # elif len(gt_values) == 2:
-        #     gt_bboxes, gt_labels = gt_values
-        #     gt_difficults = None
+        _, gt_labels = gt_values
 
-        # result = eval_detection_voc(
-        #     pred_bboxes, pred_labels, pred_scores,
-        #     gt_bboxes, gt_labels, gt_difficults,
-        #     use_07_metric=self.use_07_metric)
+        report = {}
 
-        # report = {'map': result['map']}
+        label_groups = defaultdict(list)
 
-        # if self.label_names is not None:
-        #     for l, label_name in enumerate(self.label_names):
-        #         try:
-        #             report['ap/{:s}'.format(label_name)] = result['ap'][l]
-        #         except IndexError:
-        #             report['ap/{:s}'.format(label_name)] = np.nan
+        for labels, confs in zip(gt_labels, mb_confs):
+            label_groups.update(SSDTripletLoss._get_label_groups(
+                zip(labels, confs)))
+        for label, feat_v in label_groups.items():
+            if label != 0:
+                distances = pdist(feat_v)
+                avg_dist = mean(distances)
+                print(label, avg_dist)
+                report[label - 1] = avg_dist
 
-        # observation = dict()
-        # with reporter.report_scope(observation):
-        #     reporter.report(report, target)
-        # return observation
+        observation = dict()
+        with reporter.report_scope(observation):
+            reporter.report(report, target)
+        return observation
