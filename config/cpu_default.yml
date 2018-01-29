@@ -1,5 +1,5 @@
-input_dir: ../labeled_images/
-test_dir: ../images_test/
+input_dir: ../balanced_dataset_test_train/train/
+test_dir: ../balanced_dataset_test_train/test/
 output: result
 batch_size: 32
 iterator: SerialIterator
