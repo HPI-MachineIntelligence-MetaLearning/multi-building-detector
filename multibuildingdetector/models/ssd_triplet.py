@@ -1,10 +1,11 @@
 import warnings
 
 import chainer
+import chainer.functions as F
 import numpy as np
 from chainercv.links import SSD300
 from chainercv.links.model.ssd import VGG16Extractor300
-from chainercv.utils import download_model
+from chainercv.utils import download_model, non_maximum_suppression
 
 from multibuildingdetector.multiboxes.tripletmultibox import TripletMultibox
 
@@ -32,6 +33,57 @@ class SSDTriplet(SSD300):
 
         if path:
             _load_npz(path, self)
+
+    def predict(self, imgs):
+        """Detect objects from images.
+        This method predicts objects for each image.
+        Args:
+            imgs (iterable of numpy.ndarray): Arrays holding images.
+                All images are in CHW and RGB format
+                and the range of their value is :math:`[0, 255]`.
+        Returns:
+           tuple of lists:
+           This method returns a tuple of three lists,
+           :obj:`(bboxes, labels, scores)`.
+           * **bboxes**: A list of float arrays of shape :math:`(R, 4)`, \
+               where :math:`R` is the number of bounding boxes in a image. \
+               Each bouding box is organized by \
+               :math:`(y_{min}, x_{min}, y_{max}, x_{max})` \
+               in the second axis.
+           * **labels** : A list of integer arrays of shape :math:`(R,)`. \
+               Each value indicates the class of the bounding box. \
+               Values are in range :math:`[0, L - 1]`, where :math:`L` is the \
+               number of the foreground classes.
+           * **scores** : A list of float arrays of shape :math:`(R,)`. \
+               Each value indicates how confident the prediction is.
+        """
+
+        x = list()
+        sizes = list()
+        for img in imgs:
+            _, H, W = img.shape
+            img = self._prepare(img)
+            x.append(self.xp.array(img))
+            sizes.append((H, W))
+
+        with chainer.using_config('train', False), \
+                chainer.function.no_backprop_mode():
+            x = chainer.Variable(self.xp.stack(x))
+            mb_locs, mb_confs = self(x)
+        mb_locs, mb_confs = mb_locs.array, mb_confs.array
+
+        return self._filter_overlapping_bboxs(
+            mb_locs, mb_confs, self.nms_thresh)
+
+    def _filter_overlapping_bboxs(self, mb_boxs, mb_confs, thresh):
+        confs = []
+        for box, conf in zip(mb_boxs, mb_confs):
+            indices = non_maximum_suppression(box, thresh)
+
+            confs.append(conf[indices])
+        confs = F.concat(confs, axis=0)
+        print(confs.shape)
+        return confs
 
 
 def _check_pretrained_model(n_fg_class, pretrained_model, models):

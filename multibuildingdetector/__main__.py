@@ -14,6 +14,7 @@ from os.path import dirname, join, realpath
 
 from multibuildingdetector.transforms.augmentation import ImageAugmentation
 from multibuildingdetector.reader import load_train_test_set
+from multibuildingdetector.evaluators.tripletevaluator import TripletEvaluator
 
 PROJECT_DIR = join(dirname(realpath(__file__)), '..')
 
@@ -35,7 +36,7 @@ def _import_class(class_path):
     return getattr(module, class_name)
 
 
-def run(input_dir, output, batch_size, train_split=0.8,
+def run(input_dir, test_dir, output, batch_size, train_split=0.8,
         iterator='SerialIterator',
         device=-1, pretrained_model='', save_trigger=10000,
         parser_module='XMLParser',
@@ -59,7 +60,7 @@ def run(input_dir, output, batch_size, train_split=0.8,
         chainer.cuda.get_device_from_id(device).use()
         model.to_gpu()
 
-    train, test = load_train_test_set(input_dir, train_split, parser)
+    train, test = load_train_test_set(input_dir, test_dir, train_split, parser)
 
     augmented_train = TransformDataset(
         train,
@@ -93,6 +94,11 @@ def run(input_dir, output, batch_size, train_split=0.8,
                 label_names=parser.LABEL_NAMES),
             trigger=(10000, 'iteration'))
         log_fields.append('validation/main/map')
+    else:
+        trainer.extend(
+            TripletEvaluator(
+                test_iter, model),
+            trigger=(1, 'iteration'))
 
     log_interval = 10, 'iteration'
     trainer.extend(extensions.LogReport(trigger=log_interval))
