@@ -42,19 +42,17 @@ class SSDTriplet(SSD300):
                 and the range of their value is :math:`[0, 255]`.
         Returns:
            tuple of lists:
-           This method returns a tuple of three lists,
+           This method returns a tuple of two lists,
            :obj:`(bboxes, labels, scores)`.
-           * **bboxes**: A list of float arrays of shape :math:`(R, 4)`, \
+           * **mb_locs**: A list of float arrays of shape :math:`(R, 4)`, \
                where :math:`R` is the number of bounding boxes in a image. \
-               Each bouding box is organized by \
+               (Default bounding box space, so somthing like 8700) \
+               Each bounding box is organized by \
                :math:`(y_{min}, x_{min}, y_{max}, x_{max})` \
                in the second axis.
-           * **labels** : A list of integer arrays of shape :math:`(R,)`. \
-               Each value indicates the class of the bounding box. \
-               Values are in range :math:`[0, L - 1]`, where :math:`L` is the \
-               number of the foreground classes.
-           * **scores** : A list of float arrays of shape :math:`(R,)`. \
-               Each value indicates how confident the prediction is.
+           * **mb_confs** : A list of integer arrays of shape
+                            :math:`(R,<feature vector size>)`. \
+               Each value indicates the feature vector of the bounding box. \
         """
 
         x = list()
