@@ -36,9 +36,10 @@ def _import_class(class_path):
     return getattr(module, class_name)
 
 
-def run(input_dir, test_dir, output, batch_size, train_split=0.8,
+def run(input_dir, test_dir, output, batch_size,
         iterator='SerialIterator',
         device=-1, pretrained_model='', save_trigger=10000,
+        test_trigger=1000,
         parser_module='XMLParser',
         train_module='MultiboxTrainChain',
         model_module='chainercv.links.SSD300'):
@@ -60,17 +61,19 @@ def run(input_dir, test_dir, output, batch_size, train_split=0.8,
         chainer.cuda.get_device_from_id(device).use()
         model.to_gpu()
 
-    train, test = load_train_test_set(input_dir, test_dir, train_split, parser)
+    train, test = load_train_test_set(input_dir, test_dir, parser)
 
     augmented_train = TransformDataset(
         train,
         ImageAugmentation(model.coder, model.insize, model.mean))
-    train_iter = getattr(chainer.iterators, iterator)(augmented_train, batch_size)
+    train_iter = getattr(chainer.iterators, iterator)(augmented_train,
+                                                      batch_size)
 
     test_iter = chainer.iterators.SerialIterator(
         TransformDataset(
             test,
-            ImageAugmentation(model.coder, model.insize, model.mean)), batch_size, repeat=False, shuffle=False)
+            ImageAugmentation(model.coder, model.insize, model.mean)),
+        batch_size, repeat=False, shuffle=False)
 
     optimizer = chainer.optimizers.Adam()
     optimizer.setup(train_chain)
@@ -94,7 +97,7 @@ def run(input_dir, test_dir, output, batch_size, train_split=0.8,
             DetectionVOCEvaluator(
                 test_iter, model, use_07_metric=True,
                 label_names=parser.LABEL_NAMES),
-            trigger=(10000, 'iteration'))
+            trigger=(test_trigger, 'iteration'))
         log_fields.append('validation/main/map')
     else:
         trainer.extend(
@@ -103,7 +106,7 @@ def run(input_dir, test_dir, output, batch_size, train_split=0.8,
                 label_names=parser.LABEL_NAMES,
                 save_plt=True,
                 save_path=output),
-            trigger=(1, 'iteration'))
+            trigger=(test_trigger, 'iteration'))
 
     log_interval = 10, 'iteration'
     trainer.extend(extensions.LogReport(trigger=log_interval))
