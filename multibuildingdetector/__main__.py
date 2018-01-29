@@ -99,7 +99,10 @@ def run(input_dir, test_dir, output, batch_size, train_split=0.8,
     else:
         trainer.extend(
             TripletEvaluator(
-                test_iter, model),
+                test_iter, model,
+                label_names=parser.LABEL_NAMES,
+                save_plt=True,
+                save_path=output),
             trigger=(1, 'iteration'))
 
     log_interval = 10, 'iteration'
