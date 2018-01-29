@@ -1,7 +1,8 @@
-from multibuildingdetector.datasets.ImageBoundingBoxDataset import ImageBoundingBoxDataset
+from multibuildingdetector.datasets.ImageBoundingBoxDataset \
+    import ImageBoundingBoxDataset
 
 
-def load_train_test_set(data_dir, test_dir, train_size, parser):
+def load_train_test_set(data_dir, test_dir, parser):
     annotations_train = parser.get_annotations(data_dir)
     annotations_test = parser.get_annotations(test_dir)
     return ImageBoundingBoxDataset(annotations_train), \
