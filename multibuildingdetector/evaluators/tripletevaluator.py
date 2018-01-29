@@ -1,54 +1,38 @@
 import copy
-import numpy as np
 from collections import defaultdict
 from statistics import mean
+import matplotlib.pyplot as plt
 
 from chainer import reporter
 import chainer.training.extensions
 from multibuildingdetector.loss.ssdtripletloss import SSDTripletLoss
 from scipy.spatial.distance import pdist
-
+from sklearn.decomposition import PCA
 
 from chainercv.utils import apply_prediction_to_iterator
 
 
 class TripletEvaluator(chainer.training.extensions.Evaluator):
 
-    """An extension that evaluates a detection model by PASCAL VOC metric.
-    This extension iterates over an iterator and evaluates the prediction
-    results by average precisions (APs) and mean of them
-    (mean Average Precision, mAP).
+    """An extension that evaluates a triplet loss model by reporting the
+    average distance between the individual feature vectors.
     This extension reports the following values with keys.
-    Please note that :obj:`'ap/<label_names[l]>'` is reported only if
-    :obj:`label_names` is specified.
-    * :obj:`'map'`: Mean of average precisions (mAP).
-    * :obj:`'ap/<label_names[l]>'`: Average precision for class \
+    * :obj:`'avg_dist/<label_names[l]>'`: Average distance for class \
         :obj:`label_names[l]`, where :math:`l` is the index of the class. \
-        For example, this evaluator reports :obj:`'ap/aeroplane'`, \
-        :obj:`'ap/bicycle'`, etc. if :obj:`label_names` is \
-        :obj:`~chainercv.datasets.voc_bbox_label_names`. \
-        If there is no bounding box assigned to class :obj:`label_names[l]` \
-        in either ground truth or prediction, it reports :obj:`numpy.nan` as \
-        its average precision. \
-        In this case, mAP is computed without this class.
     Args:
         iterator (chainer.Iterator): An iterator. Each sample should be
-            following tuple :obj:`img, bbox, label` or
-            :obj:`img, bbox, label, difficult`.
+            following tuple :obj:`img, bbox, label`
             :obj:`img` is an image, :obj:`bbox` is coordinates of bounding
-            boxes, :obj:`label` is labels of the bounding boxes and
-            :obj:`difficult` is whether the bounding boxes are difficult or
-            not. If :obj:`difficult` is returned, difficult ground truth
-            will be ignored from evaluation.
+            boxes, :obj:`label` is labels of the bounding boxes
+            (encoded in default bbox space!).
         target (chainer.Link): A detection link. This link must have
             :meth:`predict` method that takes a list of images and returns
-            :obj:`bboxes`, :obj:`labels` and :obj:`scores`.
-        use_07_metric (bool): Whether to use PASCAL VOC 2007 evaluation metric
-            for calculating average precision. The default value is
-            :obj:`False`.
+            following tuple :obj:`multibox_locs, multibox_triplets`.
+            :obj:`multibox_locs` is a vector containing the bbox locations
+            encoded in the default bbox space,
+            :obj:`multibox_triplets` is a vector containing the triplet loss
+            feature vectors encoded in the default bbox space.
         label_names (iterable of strings): An iterable of names of classes.
-            If this value is specified, average precision for each class is
-            also reported with the key :obj:`'ap/<label_names[l]>'`.
     """
 
     trigger = 1, 'epoch'
@@ -56,10 +40,13 @@ class TripletEvaluator(chainer.training.extensions.Evaluator):
     priority = chainer.training.PRIORITY_WRITER
 
     def __init__(
-            self, iterator, target, label_names=None):
+            self, iterator, target, label_names=None,
+            save_plt=False, save_path='result'):
         super(TripletEvaluator, self).__init__(
             iterator, target)
         self.label_names = label_names
+        self._save = save_plt
+        self._save_path = save_path
 
     def evaluate(self):
         iterator = self._iterators['main']
@@ -91,8 +78,18 @@ class TripletEvaluator(chainer.training.extensions.Evaluator):
             if label != 0:
                 distances = pdist(feat_v)
                 avg_dist = mean(distances)
-                print(label, avg_dist)
-                report[label - 1] = avg_dist
+                label_name = self.label_names[label - 1]
+                report['avg_dist/{}'.format(label_name)] = avg_dist
+                pca = PCA(n_components=2)
+                pca_data = pca.fit_transform(feat_v)
+                plt.scatter([x[0] for x in pca_data],
+                            [x[1] for x in pca_data],
+                            label=label_name)
+        plt.legend()
+        if self._save:
+            plt.savefig(self._save_path + '/triplet_scatter.jpg')
+        print(report)
+        plt.clf()
 
         observation = dict()
         with reporter.report_scope(observation):
