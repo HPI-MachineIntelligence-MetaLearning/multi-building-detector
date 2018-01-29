@@ -24,7 +24,8 @@ Save a new `*.yml` file in the config directory.
 Currently following fields are supported:
 
 ```
-input_dir: <data input path>
+input_dir: <data input path for train set>
+test_dir: <data input path for test set>
 output: <training result output path>
 batch_size: <batch size>
 iterator: <chainer iterator class>
