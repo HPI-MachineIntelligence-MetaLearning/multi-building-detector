@@ -1,11 +1,12 @@
 import copy
 import numpy as np
 import random
-import matplotlib
 
 from chainercv import transforms
 from chainercv.links.model.ssd import random_crop_with_bbox_constraints, \
     resize_with_random_interpolation
+
+from .color_conv import rgb_to_hsv, hsv_to_rgb
 
 
 def random_distort(
@@ -75,21 +76,21 @@ def random_distort(
 
     def saturation(cv_img, low, high):
         if random.randrange(2):
-            cv_img = matplotlib.colors.rgb_to_hsv(cv_img)
+            cv_img = rgb_to_hsv(cv_img)
             cv_img[:, :, 1] = convert(
                 cv_img[:, :, 1],
                 alpha=random.uniform(low, high))
-            return matplotlib.colors.hsv_to_rgb(cv_img)
+            return hsv_to_rgb(cv_img)
         else:
             return cv_img
 
     def hue(cv_img, delta):
         if random.randrange(2):
-            cv_img = matplotlib.colors.rgb_to_hsv(cv_img)
+            cv_img = rgb_to_hsv(cv_img)
             cv_img[:, :, 0] = (
                 cv_img[:, :, 0].astype(int) +
                 random.randint(-delta, delta)) % 180
-            return matplotlib.colors.hsv_to_rgb(cv_img)
+            return hsv_to_rgb(cv_img)
         else:
             return cv_img
 
