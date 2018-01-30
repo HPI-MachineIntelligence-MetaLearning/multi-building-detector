@@ -91,7 +91,7 @@ class TripletEvaluator(chainer.training.extensions.Evaluator):
             if feat_v.shape[0] > 1:
                 distances = pdist(feat_v)
                 avg_dist = mean(distances)
-            label_name = self.label_names[label]
+            label_name = self.label_names[label - 1]
             report['main/avg_dist/{}'.format(label_name)] = avg_dist
             if self._save:
                 pca = PCA(n_components=2)
@@ -115,11 +115,11 @@ class TripletEvaluator(chainer.training.extensions.Evaluator):
         labels = []
         for box, conf, label in zip(mb_boxs, mb_confs, gt_labels):
             indices = non_maximum_suppression(box, 0.5)
-            # Add more beatiful version of thi nms-thresh
+            # Add more beautiful version of this nms-thresh
 
             confs.append(conf[indices])
             if chainer.cuda.available:
-                labels.append(label[indices].get())
+                labels.append(label[indices.get()])
             else:
                 labels.append(label[indices])
         confs = F.concat(confs, axis=0)
@@ -134,14 +134,12 @@ class TripletEvaluator(chainer.training.extensions.Evaluator):
 
     def plot_roc_curves(self, label_groups):
         for label_test in label_groups.keys():
-            test_label = self.label_names[label_test]
-            # Note: we don't need to subtract 1 here, we already
-            # deleted the background label
+            test_label = self.label_names[label_test - 1]
             for label_center in [k for k in label_groups.keys()
                                  if k != label_test]:
                 # label_center is the class the centroid is built for,
                 # for label_test the ROC curve will be created
-                center_label = self.label_names[label_center]
+                center_label = self.label_names[label_center - 1]
                 feat_v = np.array([x.data for x in label_groups[label_center]])
                 ctroid = self.center_point(feat_v)
                 ctroid_arr = np.full(feat_v.shape, ctroid)
