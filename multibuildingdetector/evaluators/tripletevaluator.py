@@ -82,12 +82,13 @@ class TripletEvaluator(chainer.training.extensions.Evaluator):
                                               gt_labels)))
         del label_groups[0]
 
+        self.convert_label_groups(label_groups)
+
         if self._save:
             self.plot_roc_curves(label_groups)
 
         for label, feat_v in label_groups.items():
             avg_dist = -1
-            feat_v = np.array([x.data for x in feat_v])
             if feat_v.shape[0] > 1:
                 distances = pdist(feat_v)
                 avg_dist = mean(distances)
@@ -132,6 +133,15 @@ class TripletEvaluator(chainer.training.extensions.Evaluator):
             center.append(sum(points[:, i]) / points.shape[1])
         return np.array(center)
 
+    def convert_label_groups(self, label_groups):
+        for label, feat_v in label_groups.items():
+            if chainer.cuda.available:
+                label_groups[label] = np.array([x.data.get() for x in
+                                                feat_v])
+            else:
+                label_groups[label] = np.array([x.data for x in
+                                                feat_v])
+
     def plot_roc_curves(self, label_groups):
         for label_test in label_groups.keys():
             test_label = self.label_names[label_test - 1]
@@ -140,16 +150,16 @@ class TripletEvaluator(chainer.training.extensions.Evaluator):
                 # label_center is the class the centroid is built for,
                 # for label_test the ROC curve will be created
                 center_label = self.label_names[label_center - 1]
-                feat_v = np.array([x.data for x in label_groups[label_center]])
+                feat_v = label_groups[label_center]
                 ctroid = self.center_point(feat_v)
                 ctroid_arr = np.full(feat_v.shape, ctroid)
                 mean_dist = mean([x[0] for x in cdist(feat_v, ctroid_arr)])
                 predicted = []
                 for feat_center in label_groups[label_center]:
-                    dist = euclidean(ctroid, feat_center.data)
+                    dist = euclidean(ctroid, feat_center)
                     predicted.append(int(dist <= mean_dist))
                 for feat_test in label_groups[label_test]:
-                    dist = euclidean(ctroid, feat_test.data)
+                    dist = euclidean(ctroid, feat_test)
                     predicted.append(int(dist > mean_dist))
                 actual = np.append(np.zeros(len(label_groups[label_center])),
                                    np.ones(len(label_groups[label_test])))
