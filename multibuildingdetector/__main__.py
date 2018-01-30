@@ -1,3 +1,7 @@
+# set matplotlib backend to run without Xwindows
+import matplotlib
+matplotlib.use('Agg')
+
 import argparse
 import importlib
 import os
