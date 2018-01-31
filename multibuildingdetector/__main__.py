@@ -94,8 +94,7 @@ def run(input_dir, test_dir, output, batch_size,
         updater = chainer.training.StandardUpdater(train_iter, optimizer,
                                                    device=device)
     trainer = chainer.training.Trainer(updater, (120000, 'iteration'), output)
-
-    log_fields = [*train_chain.loss_labels]
+    log_fields = ['main/' + x for x in train_chain.loss_labels]
     if train_module == 'MultiboxTrainChain':
         trainer.extend(
             DetectionVOCEvaluator(
