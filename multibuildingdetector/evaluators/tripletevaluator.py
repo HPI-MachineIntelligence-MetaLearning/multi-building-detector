@@ -1,5 +1,4 @@
 import copy
-from collections import defaultdict
 from statistics import mean
 import matplotlib.pyplot as plt
 import numpy as np
@@ -74,12 +73,9 @@ class TripletEvaluator(chainer.training.extensions.Evaluator):
 
         report = {}
 
-        label_groups = defaultdict(list)
-
-        for labels, confs in zip(gt_labels, mb_confs):
-            label_groups.update(SSDTripletLoss._get_label_groups(
-                self.filter_overlapping_bboxs(mb_boxs, mb_confs,
-                                              gt_labels)))
+        label_groups = SSDTripletLoss._get_label_groups(
+            self.filter_overlapping_bboxs(mb_boxs, mb_confs,
+                                          gt_labels))
         del label_groups[0]
 
         self.convert_label_groups(label_groups)
