@@ -1,4 +1,5 @@
 import copy
+import time
 from statistics import mean
 import matplotlib.pyplot as plt
 import numpy as np
@@ -10,6 +11,7 @@ import chainer.training.extensions
 from multibuildingdetector.loss.ssdtripletloss import SSDTripletLoss
 from scipy.spatial.distance import pdist, cdist, euclidean
 from sklearn.decomposition import PCA
+from sklearn.manifold import TSNE
 from sklearn import metrics
 
 from chainercv.utils import apply_prediction_to_iterator, \
@@ -91,14 +93,17 @@ class TripletEvaluator(chainer.training.extensions.Evaluator):
             label_name = self.label_names[label - 1]
             report['main/avg_dist/{}'.format(label_name)] = avg_dist
             if self._save:
-                pca = PCA(n_components=2)
-                pca_data = pca.fit_transform(feat_v)
-                plt.scatter([x[0] for x in pca_data],
-                            [x[1] for x in pca_data],
+                pca_50 = PCA(n_components=50)
+                pca_50_data = pca_50.fit_transform(feat_v)
+                tsne = TSNE(n_components=2)
+                tsne_pca_data = tsne.fit_transform(pca_50_data)
+                plt.scatter([x[0] for x in tsne_pca_data],
+                            [x[1] for x in tsne_pca_data],
                             label=label_name)
         if self._save:
             plt.legend()
-            plt.savefig(self._save_path + '/triplet_scatter.jpg')
+            plt.savefig(self._save_path
+                        + '/triplet_scatter_{0}.jpg'.format(time.strftime("%Y-%m-%d-%H:%M")))
             plt.clf()
         print(report)
 
