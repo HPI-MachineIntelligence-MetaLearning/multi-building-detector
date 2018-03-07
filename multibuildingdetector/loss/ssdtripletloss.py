@@ -101,7 +101,7 @@ class SSDTripletLoss:
     @staticmethod
     def _add_negatives(positives, label_groups, positive_label):
         for label, group in label_groups.items():
-            if label == positive_label or not group:
+            if label == positive_label or label == 0 or not group:
                 continue
             for negative in group:
                 for positive in positives:
