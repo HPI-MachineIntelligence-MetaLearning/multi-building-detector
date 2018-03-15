@@ -11,8 +11,7 @@ LABEL_NAMES = ('other',
                'funkturm',
                'reichstag',
                'rotesrathaus',
-               'siegessaeule',
-               'none')
+               'siegessaeule')
 
 
 def get_annotations(data_dir):
@@ -26,21 +25,15 @@ def get_annotations(data_dir):
 def _parse_annotations(img_path):
     bbox = list()
     label = list()
-    try:
-        anno = ET.parse(img_path + '.xml')
-        for obj in anno.findall('object'):
-            bndbox_anno = obj.find('bndbox')
-            # subtract 1 to make pixel indexes 0-based
-            bbox.append([
-                int(bndbox_anno.find(tag).text) - 1
-                for tag in ('ymin', 'xmin', 'ymax', 'xmax')])
-            name = obj.find('name').text.lower().strip()
-            label.append(LABEL_NAMES.index(name))
-    except FileNotFoundError:
-        # No buildings present in this image,
-        # but dimensions have to be consistent
-        bbox.append([0, 0, 0, 0])
-        label.append(LABEL_NAMES.index('none'))
+    anno = ET.parse(img_path + '.xml')
+    for obj in anno.findall('object'):
+        bndbox_anno = obj.find('bndbox')
+        # subtract 1 to make pixel indexes 0-based
+        bbox.append([
+            int(bndbox_anno.find(tag).text) - 1
+            for tag in ('ymin', 'xmin', 'ymax', 'xmax')])
+        name = obj.find('name').text.lower().strip()
+        label.append(LABEL_NAMES.index(name))
     bbox = np.stack(bbox).astype(np.float32)
     label = np.stack(label).astype(np.int32)
 
