@@ -74,9 +74,7 @@ def run(input_dir, test_dir, output, batch_size,
                                                       batch_size)
 
     test_iter = chainer.iterators.SerialIterator(
-        TransformDataset(
-            test,
-            ImageAugmentation(model.coder, model.insize, model.mean)),
+        test,
         batch_size, repeat=False, shuffle=False)
 
     optimizer = chainer.optimizers.Adam()
