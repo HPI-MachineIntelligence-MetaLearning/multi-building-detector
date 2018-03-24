@@ -1,5 +1,6 @@
 # set matplotlib backend to run without Xwindows
 import matplotlib
+
 matplotlib.use('Agg')
 
 import argparse
@@ -73,10 +74,6 @@ def run(input_dir, test_dir, output, batch_size,
     train_iter = getattr(chainer.iterators, iterator)(augmented_train,
                                                       batch_size)
 
-    test_iter = chainer.iterators.SerialIterator(
-        test,
-        batch_size, repeat=False, shuffle=False)
-
     optimizer = chainer.optimizers.Adam()
     optimizer.setup(train_chain)
 
@@ -94,6 +91,9 @@ def run(input_dir, test_dir, output, batch_size,
     trainer = chainer.training.Trainer(updater, (120000, 'iteration'), output)
     log_fields = ['main/' + x for x in train_chain.loss_labels]
     if train_module == 'MultiboxTrainChain':
+        test_iter = chainer.iterators.SerialIterator(
+            test,
+            batch_size, repeat=False, shuffle=False)
         trainer.extend(
             DetectionVOCEvaluator(
                 test_iter, model, use_07_metric=True,
@@ -101,6 +101,13 @@ def run(input_dir, test_dir, output, batch_size,
             trigger=(test_trigger, 'iteration'))
         log_fields.append('validation/main/map')
     else:
+        triplet_test = TransformDataset(
+            test,
+            ImageAugmentation(model.coder, model.insize, model.mean,
+                              augment=False))
+        test_iter = chainer.iterators.SerialIterator(
+            triplet_test,
+            batch_size, repeat=False, shuffle=False)
         trainer.extend(
             TripletEvaluator(
                 test_iter, model,

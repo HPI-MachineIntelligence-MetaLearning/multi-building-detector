@@ -1,8 +1,7 @@
 import copy
-import numpy as np
 import random
-import matplotlib
 
+import numpy as np
 from chainercv import transforms
 from chainercv.links.model.ssd import random_crop_with_bbox_constraints, \
     resize_with_random_interpolation
@@ -49,10 +48,11 @@ def random_distort(
 
 class ImageAugmentation:
 
-    def __init__(self, coder, size, mean):
+    def __init__(self, coder, size, mean, augment=True):
         # to send cpu, make a copy
         self.coder = copy.copy(coder)
         self.coder.to_cpu()
+        self.augment = augment
 
         self.size = size
         self.mean = mean
@@ -67,38 +67,39 @@ class ImageAugmentation:
 
         img, bbox, label = in_data
 
-        # 1. Color augmentation
-        img = random_distort(img)
+        if self.augment:
+            # 1. Color augmentation
+            img = random_distort(img)
 
-        if len(bbox[0]) == 0:
-            bbox = np.empty((0, 4))
-            label = np.empty((0, 4))
+            if len(bbox[0]) == 0:
+                bbox = np.empty((0, 4))
+                label = np.empty((0, 4))
 
-        # 2. Random expansion
-        if np.random.randint(2):
-            img, param = transforms.random_expand(
-                img, fill=self.mean, return_param=True)
-            bbox = transforms.translate_bbox(
-                bbox, y_offset=param['y_offset'], x_offset=param['x_offset'])
+            # 2. Random expansion
+            if np.random.randint(2):
+                img, param = transforms.random_expand(
+                    img, fill=self.mean, return_param=True)
+                bbox = transforms.translate_bbox(
+                    bbox, y_offset=param['y_offset'], x_offset=param['x_offset'])
 
-        # 3. Random cropping
-        img, param = random_crop_with_bbox_constraints(
-            img, bbox, return_param=True)
-        bbox, param = transforms.crop_bbox(
-            bbox, y_slice=param['y_slice'], x_slice=param['x_slice'],
-            allow_outside_center=False, return_param=True)
-        label = label[param['index']]
+            # 3. Random cropping
+            img, param = random_crop_with_bbox_constraints(
+                img, bbox, return_param=True)
+            bbox, param = transforms.crop_bbox(
+                bbox, y_slice=param['y_slice'], x_slice=param['x_slice'],
+                allow_outside_center=False, return_param=True)
+            label = label[param['index']]
 
-        # 4. Resizing with random interpolatation
-        _, H, W = img.shape
-        img = resize_with_random_interpolation(img, (self.size, self.size))
-        bbox = transforms.resize_bbox(bbox, (H, W), (self.size, self.size))
+            # 4. Resizing with random interpolatation
+            _, H, W = img.shape
+            img = resize_with_random_interpolation(img, (self.size, self.size))
+            bbox = transforms.resize_bbox(bbox, (H, W), (self.size, self.size))
 
-        # 5. Random horizontal flipping
-        img, params = transforms.random_flip(
-            img, x_random=True, return_param=True)
-        bbox = transforms.flip_bbox(
-            bbox, (self.size, self.size), x_flip=params['x_flip'])
+            # 5. Random horizontal flipping
+            img, params = transforms.random_flip(
+                img, x_random=True, return_param=True)
+            bbox = transforms.flip_bbox(
+                bbox, (self.size, self.size), x_flip=params['x_flip'])
 
         # Preparation for SSD network
         img -= self.mean
