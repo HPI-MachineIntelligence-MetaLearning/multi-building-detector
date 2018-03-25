@@ -93,10 +93,8 @@ class TripletEvaluator(chainer.training.extensions.Evaluator):
             label_name = self.label_names[label - 1]
             report['main/avg_dist/{}'.format(label_name)] = avg_dist
             if self._save:
-                pca_50 = PCA(n_components=50)
-                pca_50_data = pca_50.fit_transform(feat_v)
                 tsne = TSNE(n_components=2)
-                tsne_pca_data = tsne.fit_transform(pca_50_data)
+                tsne_pca_data = tsne.fit_transform(feat_v)
                 plt.scatter([x[0] for x in tsne_pca_data],
                             [x[1] for x in tsne_pca_data],
                             label=label_name)
