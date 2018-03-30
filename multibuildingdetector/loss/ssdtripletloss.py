@@ -11,7 +11,7 @@ from collections import defaultdict
 class SSDTripletLoss:
 
     def __init__(self, gt_mb_locs, gt_mb_labels, coder,
-                 nms_thresh=0.5):
+                 nms_thresh=0.2):
         self.gt_mb_locs = gt_mb_locs
         self.gt_mb_labels = gt_mb_labels
         self.coder = coder
@@ -25,15 +25,16 @@ class SSDTripletLoss:
             z = chainer.Variable(self.xp.zeros((), dtype=np.float32))
             return z, z
         loc_loss = self._compute_loc_loss(mb_locs, n_positive, positive)
-        triplet_loss = self._compute_triplet_loss(mb_locs, mb_confs)
-        return loc_loss, triplet_loss
+        triplet_batch_size, triplet_loss = self._compute_triplet_loss(mb_locs,
+                                                                      mb_confs)
+        return triplet_batch_size, loc_loss, triplet_loss
 
     def _decode_bbox(self, mb_loc):
         mb_bbox = self.coder._default_bbox.copy()
         mb_bbox[:, :2] += mb_loc[:, :2] * self.coder._variance[0] \
                                         * self.coder._default_bbox[:, 2:]
-        mb_bbox[:, 2:] *= self.xp.exp(mb_loc[:, 2:]
-                                      * self.coder._variance[1])
+        mb_bbox[:, 2:] *= self.xp.exp(mb_loc[:, 2:] *
+                                      self.coder._variance[1])
 
         # (center_y, center_x, height, width) -> (y_min, x_min, height, width)
         mb_bbox[:, :2] -= mb_bbox[:, 2:] / 2
@@ -60,12 +61,13 @@ class SSDTripletLoss:
         mb_boxs = [self._decode_bbox(mb_loc) for mb_loc in mb_locs.array]
         labeled_features = self._filter_overlapping_bboxs(mb_boxs, mb_confs)
         anchors, positives, negatives = self._build_triplets(labeled_features)
+        batch_size = len(anchors)
         if not anchors:
-            return chainer.Variable(self.xp.zeros((), dtype=np.float32))
+            return 0, chainer.Variable(self.xp.zeros((), dtype=np.float32))
         anchors = F.stack(anchors)
         positives = F.stack(positives)
         negatives = F.stack(negatives)
-        return F.triplet(anchors, positives, negatives)
+        return batch_size, F.triplet(anchors, positives, negatives)
 
     def _build_triplets(self, labeled_features):
         triplets = []
@@ -101,7 +103,7 @@ class SSDTripletLoss:
     @staticmethod
     def _add_negatives(positives, label_groups, positive_label):
         for label, group in label_groups.items():
-            if label == positive_label or not group:
+            if label == positive_label or label == 0 or not group:
                 continue
             for negative in group:
                 for positive in positives:
