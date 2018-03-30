@@ -11,7 +11,7 @@ class TripletMultibox(chainer.Chain):
         self.n_class = n_class
         self.aspect_ratios = aspect_ratios
 
-        self._input_multiplier = 256
+        self._input_multiplier = 128
 
         super().__init__()
         with self.init_scope():
